@@ -1,18 +1,49 @@
 import express, { Request, Response } from 'express';
+import http from 'http';
+import router from './router';
 
-class App {
-  public application: express.Application;
+// const connectDB = async () => {
+//   try {
+//     await dataSource.initialize();
+//     console.log('DB connected!');
+//   } catch (err) {
+//     console.error(err);
+//   }
+// };
+const loadExpressApp = async () => {
+  const app = express();
 
-  constructor() {
-    this.application = express();
-  }
-}
+  // app.use(helmet());
+  app.use(express.json());
+  app.enable('trust proxy');
 
-const app = new App().application;
+  app.use(router);
+  // app.use(errorHandler);
+  app.all('*', (_, res) => {
+    res.status(404).json({
+      data: null,
+      error: {
+        message: 'URL Not Found',
+      },
+    });
+  });
+  return app;
+};
 
-app.get('/', (req: Request, res: Response) => {
-  res.send('Hello World!');
-});
+const createServer = async () => {
+  const app = await loadExpressApp();
+  const server = http.createServer(app);
+  const port = process.env.PORT || 8080;
 
-const PORT = 3000;
-app.listen(PORT, () => console.log('Listen on port ${PORT}'));
+  server.listen(port, () => {
+    console.log(`Server is running on port ${port}`);
+  });
+};
+
+createServer()
+  .then(() => {
+    console.log('Server started!');
+  })
+  .catch((err) => {
+    console.error(err);
+  });
