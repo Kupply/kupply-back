@@ -3,16 +3,20 @@ import http from 'http';
 import router from './router';
 import helmet from 'helmet';
 import errorHandler from './middlewares/errorHandler';
+import dotenv from 'dotenv';
+dotenv.config();
+const connectDB = async () => {
+  const DbConnectionString = process.env.DBUrl || '';
+  try {
+    await mongoose.connect(DbConnectionString);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-// const connectDB = async () => {
-//   try {
-//     await dataSource.initialize();
-//     console.log('DB connected!');
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
+const mongoose = require('mongoose');
 const loadExpressApp = async () => {
+  await connectDB();
   const app = express();
 
   app.use(helmet());
