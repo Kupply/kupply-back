@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express, { Request, Response } from 'express';
 
 class App {
   public application: express.Application;
@@ -10,9 +10,9 @@ class App {
 
 const app = new App().application;
 
-app.get("/", (req: Request, res: Response) => {
-  res.send("Hello World!");
+app.get('/', (req: Request, res: Response) => {
+  res.send('Hello World!');
 });
 
 const PORT = 3000;
-app.listen(PORT, () => console.log("Listen on port ${PORT}"));
+app.listen(PORT, () => console.log('Listen on port ${PORT}'));
