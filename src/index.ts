@@ -3,16 +3,39 @@ import http from 'http';
 import router from './router';
 import helmet from 'helmet';
 import errorHandler from './middlewares/errorHandler';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import User from './entity/User';
 
-// const connectDB = async () => {
-//   try {
-//     await dataSource.initialize();
-//     console.log('DB connected!');
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
+dotenv.config();
+
+const DB = process.env.DATABASE || '';
+
+const connectDB = async () => {
+  try {
+    await mongoose.connect(DB);
+    console.log('DB connected!');
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+run();
+async function run() {
+  try {
+    const user = await User.create({
+      name: 'Junhyeok',
+      age: 22,
+      email: 'junhy1607@naver.com',
+    });
+    console.log(user);
+  } catch (err) {
+    console.log(err);
+  }
+}
+
 const loadExpressApp = async () => {
+  await connectDB();
   const app = express();
 
   app.use(helmet());
