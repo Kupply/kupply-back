@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import http from 'http';
 import router from './router';
 import helmet from 'helmet';
+import errorHandler from './middlewares/errorHandler';
 
 // const connectDB = async () => {
 //   try {
@@ -19,7 +20,7 @@ const loadExpressApp = async () => {
   app.enable('trust proxy');
 
   app.use(router);
-  // app.use(errorHandler);
+  app.use(errorHandler);
   app.all('*', (_, res) => {
     res.status(404).json({
       data: null,
