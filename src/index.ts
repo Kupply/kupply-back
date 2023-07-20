@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
 import router from './router';
+import helmet from 'helmet';
 
 // const connectDB = async () => {
 //   try {
@@ -13,7 +14,7 @@ import router from './router';
 const loadExpressApp = async () => {
   const app = express();
 
-  // app.use(helmet());
+  app.use(helmet());
   app.use(express.json());
   app.enable('trust proxy');
 
