@@ -137,7 +137,6 @@ const CommentSchema = new Schema({
     date: Number,
 });
 
-
 const User = mongoose.model('User', UserSchema);
 const Major = mongoose.model('Major', MajorSchema);
 const Post = mongoose.model('Post', PostSchema);
