@@ -28,7 +28,7 @@ const UserSchema = new Schema(
     firstMajor: {
       type: Schema.Types.ObjectId,
       ref: 'Major',
-      // required: true,
+      required: true,
     },
     name: {
       type: String,
