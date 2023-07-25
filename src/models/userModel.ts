@@ -21,7 +21,6 @@ const UserSchema = new Schema(
       type: String,
       required: [true, 'User must have an email address.'],
       unique: true,
-      lowercase: true,
       trim: true,
       validate: validator.isEmail,
     },
