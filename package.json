@@ -26,9 +26,11 @@
   },
   "dependencies": {
     "@types/mongoose": "^5.11.97",
+    "@types/validator": "^13.7.17",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
-    "mongoose": "^7.4.0"
+    "mongoose": "^7.4.0",
+    "validator": "^13.9.0"
   }
 }
