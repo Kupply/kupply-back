@@ -1,8 +1,8 @@
 import express from 'express';
-import * as userController from '../controller/entityController';
+import * as userController from '../controller/userController';
 
-const router = express.Router();
+const userRouter = express.Router();
 
-router.get('/', userController.joinUser);
+userRouter.post('/', userController.joinUser);
 
-export default router;
+export default userRouter;

@@ -25,8 +25,10 @@
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/bcrypt": "^5.0.0",
     "@types/mongoose": "^5.11.97",
     "@types/validator": "^13.7.17",
+    "bcrypt": "^5.1.0",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "helmet": "^7.0.0",
