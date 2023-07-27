@@ -1,9 +1,24 @@
-import mongoose from 'mongoose';
+import { Schema, Model, model, Types } from 'mongoose';
 import validator from 'validator';
 
-const Schema = mongoose.Schema;
+export interface IUser {
+  _id: Types.ObjectId,
+  password: string,
+  studentId: number,
+  email: string,
+  firstMajor: Types.ObjectId,
+  name: string,
+  nickname: string,
+  role: string,
+  secondMajor: Types.ObjectId,
+  passSemester: string,
+  passDescription: string,
+  passGPA: number,
+  wannaSell: boolean,
+  hopeMajors: Array<string>
+}
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<IUser>(
   {
     // common info of user
     password: {
@@ -114,4 +129,4 @@ function arrayLimit(val: string[]) {
   return val.length <= 2;
 }
 
-export default mongoose.model('User', UserSchema);
+export default model<IUser>('User', UserSchema);
