@@ -8,7 +8,7 @@ export const createApplicationData = async (
 ) => {
   try {
     let applyData = req.body;
-    applyData.userId = 2019320051; //임의 fake user studentId 추가하기
+    applyData.userId = 2019320051; //ObjectId를 받지 않는 경우를 상정해서 임의 fake user studentId 추가하기
 
     await applicationService.createApplicationData(applyData);
     res.status(200).send();

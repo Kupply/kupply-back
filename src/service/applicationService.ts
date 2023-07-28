@@ -15,22 +15,22 @@ type applyDataType = {
 export const createApplicationData = async (applyData: applyDataType) => {
   try {
     const {userId, pnp, applyMajor1, applyMajor2, applySemester, 
-      applyTimes, applyGPA, applyDescription} = applyData;
+      applyTimes, applyGPA, applyDescription} = applyData;  
 
     const applyUser:Array<IUser> = await User.find({studentId: userId}).exec();  //DB에서 User를 가져온다.
 
     const newApplication = new Application({
-      candidateId: applyUser[0]._id,
+      candidateId: applyUser[0]._id,  //Typescript 오류가 떠서, 배열을 통해 받은 뒤 User가 겹치지 않으므로 첫 번째 원소의 _id 참조
       pnp: pnp,
       applyMajor1: applyMajor1,
-      applyMajor2: applyMajor2,
+      applyMajor2: applyMajor2,       //Major Data의 경우 ObjectId를 받는 경우를 상정함.
       applySemester: applySemester,
       applyTimes: applyTimes,
       applyGPA: applyGPA,
       applyDescription: applyDescription
     });
 
-    await newApplication.save();
+    await newApplication.save();  //DB에 application 데이터를 저장한다.
   } catch {
     console.log('error');
   }
