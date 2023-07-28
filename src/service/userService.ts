@@ -1,12 +1,51 @@
 import { NextFunction, Request, Response } from 'express';
 import User from '../models/userModel';
-import Major from '../models/majorModel';
+import Major, { IMajor } from '../models/majorModel';
 import bcrypt from 'bcryptjs';
 
 export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const newUser = await User.create(req.body);
-    return newUser;
+    const userInfo = req.body;
+    const firstMajorName = userInfo.firstMajor;
+    const firstMajor: IMajor | null = await Major.findOne({
+      name: firstMajorName,
+    }).exec();
+    const secondMajorName = userInfo.secondMajor;
+
+    if (!secondMajorName) {
+      // candidate
+      const newUser = await User.create({
+        password: userInfo.password,
+        studentId: userInfo.studentId,
+        email: userInfo.email,
+        firstMajor: firstMajor!._id,
+        name: userInfo.name,
+        nickname: userInfo.nickname,
+        role: userInfo.role,
+        hopeMajors: userInfo.hopeMajors,
+      });
+      return newUser;
+    } else {
+      // passer
+      const secondMajor: IMajor | null = await Major.findOne({
+        name: secondMajorName,
+      }).exec();
+      const newUser = await User.create({
+        password: userInfo.password,
+        studentId: userInfo.studentId,
+        email: userInfo.email,
+        firstMajor: firstMajor!._id,
+        name: userInfo.name,
+        nickname: userInfo.nickname,
+        role: userInfo.role,
+        secondMajor: secondMajor!._id,
+        passSemester: userInfo.passSemester,
+        passDescription: userInfo.passDescription,
+        passGPA: userInfo.passGPA,
+        wannaSell: userInfo.wannaSell,
+      });
+      return newUser;
+    }
   } catch (err) {
     next(err);
   }
