@@ -1,3 +1,4 @@
+import { Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 
@@ -35,3 +36,14 @@ export const createApplicationData = async (applyData: applyDataType) => {
     console.log('error');
   }
 };
+
+export const getApplicationData = async (userId: Types.ObjectId) => {
+  try {
+    const user = await User.findById(userId);
+
+    return user;    //DB에서 Id로 user를 찾아서 보내 준다.
+  } catch {
+    console.log('error');
+  }
+};
+
