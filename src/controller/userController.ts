@@ -8,7 +8,7 @@ export const joinUser = async (
 ) => {
   try {
     const userData = req.body;
-    await userService.joinUser(userData);
+    await userService.joinUser();
     res.status(200).json();
   } catch (err) {
     next(err);

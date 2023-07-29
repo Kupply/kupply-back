@@ -4,7 +4,6 @@ import router from './router/index';
 import helmet from 'helmet';
 import errorHandler from './middlewares/errorHandler';
 import dotenv from 'dotenv';
-import mongoose from 'mongoose';
 
 dotenv.config();
 const connectDB = async () => {
@@ -18,7 +17,7 @@ const connectDB = async () => {
   }
 };
 
-//const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const loadExpressApp = async () => {
   await connectDB();
   const app = express();
@@ -41,13 +40,17 @@ const loadExpressApp = async () => {
 };
 
 const createServer = async () => {
-  const app = await loadExpressApp();
-  const server = http.createServer(app);
-  const port = process.env.PORT || 8080;
+  try {
+    const app = await loadExpressApp();
+    const server = http.createServer(app);
+    const port = process.env.PORT || 8080;
 
-  server.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
+    server.listen(port, () => {
+      console.log(`Server is running on port ${port}`);
+    });
+  } catch (err) {
+    console.error(err);
+  }
 };
 
 createServer()
