@@ -3,12 +3,15 @@ import userRouter from './userRouter';
 import majorRouter from './majorRouter';
 import * as userController from '../controller/userController';
 
+import dashboardRouter from './dashboard';
+
 const router = express.Router();
 
 router.post('/join', userController.join);
 router.post('/login', userController.login);
 
 router.use('/user', userRouter);
+router.use('/dashboard', dashboardRouter);
 router.use('/major', majorRouter);
 
 router.get('/', (req, res) => {
