@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import * as userService from '../service/userService';
 
+
 export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const newUser = await userService.join(req, res, next);
