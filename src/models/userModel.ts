@@ -16,7 +16,7 @@ export interface IUser {
   passDescription: string;
   passGPA: number;
   wannaSell: boolean;
-  hopeMajors: Array<string>;
+  hopeMajors: Array<string> | null;
 }
 
 const userSchema = new Schema<IUser>(

@@ -3,7 +3,7 @@ import userRouter from './userRouter';
 import majorRouter from './majorRouter';
 import * as userController from '../controller/userController';
 import dashboardRouter from './dashboard';
-import postRouter from './post';
+import postRouter from './postRouter';
 
 const router = express.Router();
 

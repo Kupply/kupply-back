@@ -1,12 +1,12 @@
-import mongoose from "mongoose";
-import postModel from "../models/postModel";
+import mongoose from 'mongoose';
+import postModel from '../models/postModel';
 
 export const getAllPosts = async () => {
   try {
     // DB에 저장된 모든 포스트 조회
     const posts = await postModel.find();
     return posts;
-    } catch {
+  } catch {
     console.log('error');
   }
 };
@@ -14,10 +14,10 @@ export const getAllPosts = async () => {
 export const createPost = async () => {
   try {
     const newPost = new postModel({
-      userId: '64c505f5a8620c1ed10d690c',
-      category: "sample category2",
-      title: "sample title2",
-      content: "sample content2",
+      userId: '64c76faea01a83ef15a9f141',
+      category: 'sample category2',
+      title: 'sample title2',
+      content: 'sample content2',
     });
     const createdPost = await newPost.save();
     return createdPost;
@@ -26,16 +26,14 @@ export const createPost = async () => {
   }
 };
 
-export const deletePost = async (
-  postId: mongoose.Types.ObjectId
-) => {
+export const deletePost = async (postId: mongoose.Types.ObjectId) => {
   try {
     const deletePost = await postModel.findByIdAndDelete(postId);
     if (!deletePost) {
-      throw new Error ('No post found with the provided ID.');
+      throw new Error('No post found with the provided ID.');
     }
     return deletePost;
   } catch (error) {
     console.error(error);
   }
-}
+};
