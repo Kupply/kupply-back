@@ -1,48 +1,105 @@
-import userModel from "../models/userModel";
-import majorModel from "../models/majorModel";
-import bcrypt from 'bcrypt';
+import { NextFunction, Request, Response } from 'express';
+import User from '../models/userModel';
+import Major, { IMajor } from '../models/majorModel';
+import bcrypt from 'bcryptjs';
 
-export const initMajors = async () => {
-  const majors = ['ComputerScience', 'Mathematics', 'DataScience'];
-
-  // Promise.all을 사용하여 모든 major를 동시에 생성
-  const majorPromises = majors.map(major => majorModel.create({name: major}));
-
-  return Promise.all(majorPromises);
-}
-
-export const joinUser = async () => {
+export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    // 비밀번호 암호화
-    //const saltRounds = 10;
-    //const salt = await bcrypt.genSalt(saltRounds);
-    //const hashedPassword = await bcrypt.hash(userData.password, salt);
+    const userInfo = req.body;
+    const firstMajorName = userInfo.firstMajor;
+    const firstMajor: IMajor | null = await Major.findOne({
+      name: firstMajorName,
+    }).exec();
+    const secondMajorName = userInfo.secondMajor;
 
-    const majors = await initMajors();
+    if (!secondMajorName) {
+      // candidate
+      const newUser = await User.create({
+        password: userInfo.password,
+        studentId: userInfo.studentId,
+        email: userInfo.email,
+        firstMajor: firstMajor!._id,
+        name: userInfo.name,
+        nickname: userInfo.nickname,
+        role: userInfo.role,
+        hopeMajors: userInfo.hopeMajors,
+      });
+      return newUser;
+    } else {
+      // passer
+      const secondMajor: IMajor | null = await Major.findOne({
+        name: secondMajorName,
+      }).exec();
+      const newUser = await User.create({
+        password: userInfo.password,
+        studentId: userInfo.studentId,
+        email: userInfo.email,
+        firstMajor: firstMajor!._id,
+        name: userInfo.name,
+        nickname: userInfo.nickname,
+        role: userInfo.role,
+        secondMajor: secondMajor!._id,
+        passSemester: userInfo.passSemester,
+        passDescription: userInfo.passDescription,
+        passGPA: userInfo.passGPA,
+        wannaSell: userInfo.wannaSell,
+      });
+      return newUser;
+    }
+  } catch (err) {
+    next(err);
+  }
+};
 
-    // 데이터베이스에 추가된 각 학과의 `_id`를 가져오기
-    const [computerScience, mathematics, dataScience] = majors.map(major => major._id);
- 
-    // 암호화된 비밀번호로 유저 생성
-    const newUser = new userModel({
-      password: 'hashedPassword!!',
-      studentId: 2021160011,
-      email: "2021160011@korea.ac.kr",
-      firstMajor: dataScience,
-      name: "Goo three Jeong",
-      nickname: "three",
-      role: "passer",
-      secondMajor: mathematics,
-      passSemester: "2020-1",
-      passDescription: "Nothing",
-      passGPA: 4.0,
-      wannaSell: 1,
-      hopeMajors: 'computerScience',
-    });
+export const login = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    // FIXME: 1) T, F말고 user 보내주고 싶은데, 그러면 return false 대신 에러 생성해야 하는데 에러 생성이 안 돼서 일단 T, F
+    // 2) userModel에 checkPassword 함수를 만들었는데 user.checkPassword가 안 돼서 여기서 compare
+    // 3) user.password도 에러떠서 ! 붙였는데 이렇게 해도 되나
+    const { email, password } = req.body;
 
-    const joinUser = await newUser.save();
-    return joinUser;
-  } catch (error) {
-    console.error(error);
+    if (!email || !password) return false;
+
+    const user = await User.findOne({ email }).select('+password');
+
+    if (!user || !(await bcrypt.compare(password, user.password!)))
+      return false;
+
+    return true;
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAllUsers = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const users = await User.find()
+      .populate('firstMajor', 'name')
+      .populate('secondMajor', 'name');
+    return users;
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const deleteUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+
+    return user;
+  } catch (err) {
+    next(err);
   }
 };

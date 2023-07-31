@@ -2,7 +2,13 @@ import mongoose from 'mongoose';
 
 const Schema = mongoose.Schema;
 
-const majorSchema = new Schema({
+export interface IMajor {
+  _id: string;
+  name: string;
+  recruiting: number;
+}
+
+const majorSchema = new Schema<IMajor>({
   name: {
     type: String,
     required: true,
@@ -10,4 +16,4 @@ const majorSchema = new Schema({
   recruiting: Number,
 });
 
-export default mongoose.model('Major', majorSchema);
+export default mongoose.model<IMajor>('Major', majorSchema);

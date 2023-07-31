@@ -1,9 +1,25 @@
-import mongoose from 'mongoose';
+import { Schema, Model, model, Types } from 'mongoose';
 import validator from 'validator';
+import bcrypt from 'bcryptjs';
 
-const Schema = mongoose.Schema;
+export interface IUser {
+  _id: Types.ObjectId;
+  password: string;
+  studentId: number;
+  email: string;
+  firstMajor: Types.ObjectId;
+  name: string;
+  nickname: string;
+  role: string;
+  secondMajor: Types.ObjectId;
+  passSemester: string;
+  passDescription: string;
+  passGPA: number;
+  wannaSell: boolean;
+  hopeMajors: Array<string>;
+}
 
-const UserSchema = new Schema(
+const userSchema = new Schema<IUser>(
   {
     // common info of user
     password: {
@@ -84,27 +100,27 @@ const UserSchema = new Schema(
 );
 
 // Not stored in DB
-UserSchema.virtual('applications', {
+userSchema.virtual('applications', {
   ref: 'Application',
   localField: '_id',
   foreignField: 'candidateId',
 });
-UserSchema.virtual('posts', {
+userSchema.virtual('posts', {
   ref: 'Post',
   localField: '_id',
   foreignField: 'userId',
 });
-UserSchema.virtual('comments', {
+userSchema.virtual('comments', {
   ref: 'Comment',
   localField: '_id',
   foreignField: 'author',
 });
-UserSchema.virtual('sendMessages', {
+userSchema.virtual('sendMessages', {
   ref: 'Message',
   localField: '_id',
   foreignField: 'sender',
 });
-UserSchema.virtual('receiveMessages', {
+userSchema.virtual('receiveMessages', {
   ref: 'Message',
   localField: '_id',
   foreignField: 'receiver',
@@ -114,4 +130,15 @@ function arrayLimit(val: string[]) {
   return val.length <= 2;
 }
 
-export default mongoose.model('User', UserSchema);
+userSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  this.password = await bcrypt.hash(this.password!, 12);
+  next();
+});
+
+userSchema.methods.checkPassword = async function (userPassword: string) {
+  return await bcrypt.compare(userPassword, this.Password);
+};
+
+export default model('User', userSchema);
