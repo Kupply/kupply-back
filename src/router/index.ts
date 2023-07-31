@@ -1,7 +1,11 @@
 import express from 'express';
-import userRouter from './user';
+import dashboardRouter from './dashboard'
+
+
 const router = express.Router();
-router.use('/user', userRouter);
+
+router.use('/dashboard', dashboardRouter);
+
 router.get('/', (req, res) => {
   res.send('Hello World!');
 });
