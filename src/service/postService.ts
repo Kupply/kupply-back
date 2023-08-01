@@ -7,18 +7,18 @@ export const getAllPosts = async () => {
     const posts = await postModel.find();
     return posts;
   } catch {
-    console.log('error');
+    console.error('error');
   }
 };
 
-export const createPost = async () => {
+export const createPost = async (postData: {
+  userId: mongoose.Types.ObjectId;
+  title: string;
+  content: string;
+  category: string;
+}) => {
   try {
-    const newPost = new postModel({
-      userId: '64c76faea01a83ef15a9f141',
-      category: 'sample category2',
-      title: 'sample title2',
-      content: 'sample content2',
-    });
+    const newPost = new postModel(postData);
     const createdPost = await newPost.save();
     return createdPost;
   } catch (error) {
