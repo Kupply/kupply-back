@@ -1,14 +1,17 @@
 import express from 'express';
 import userRouter from './userRouter';
 import majorRouter from './majorRouter';
-import * as userController from '../controller/userController';
 import dashboardRouter from './dashboard';
 import postRouter from './postRouter';
+import * as authController from '../controller/authController';
 
 const router = express.Router();
 
-router.post('/join', userController.join);
-router.post('/login', userController.login);
+router.post('/join', authController.join);
+router.post('/login', authController.login);
+router.get('/logout', authController.logout);
+
+router.use(authController.protect);
 
 router.use('/user', userRouter);
 router.use('/post', postRouter);
