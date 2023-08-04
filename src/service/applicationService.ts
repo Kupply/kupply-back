@@ -42,11 +42,75 @@ export const createApplicationData = async (applyData: applyDataType) => {
 
 export const getApplicationData = async (userId: Types.ObjectId) => {
   try {
-    const user = await Application.findOne({candidateId: userId, applySemester: "2023-1"});
+    // user의 이번 학기 지원 데이터를 찾는다.
+    const userApplyData = await Application.findOne({ candidateId: userId, applySemester: "2023-1" });
 
-    return user;    //DB에서 Id로 user를 찾아서 보내 준다.
-  } catch {
-    console.log('error');
+    if (!userApplyData) {
+      throw new Error("해당 사용자의 지원 데이터를 찾을 수 없습니다.");
+    }
+
+    //학점 데이터를 따로 빼서 저장함.
+    const myGPA = userApplyData.applyGPA; 
+
+    // 지원 1지망이 user와 일치하는 모든 이번 학기 지원 데이터를 가져온다.
+    const allApplyData = await Application.find({
+      applyMajor1: userApplyData.applyMajor1,
+      applySemester: userApplyData.applySemester
+    });
+
+    // 지원 데이터 중 그래프에 필요한 정보만 추출한다.
+    const returnApplyData = allApplyData.map(applyData => ({
+      applyGPA: applyData.applyGPA,
+      applyMajor: applyData.applyMajor1,
+      applyTimes: applyData.applyTimes,
+      isPassed: applyData.pnp
+    }));
+
+    // 재지원 횟수가 일치하는 정보를 따로 빼 놓는다.
+    const sameApplyTimeData = returnApplyData.filter(applyData => applyData.applyTimes === userApplyData.applyTimes);
+    
+    //통계를 계산한다.
+    const applyGPAValues = returnApplyData.map(data => data.applyGPA);
+
+    const averageGPA = mean(applyGPAValues);
+    const minimumGPA = min(applyGPAValues);
+    const medianGPA = median(applyGPAValues);
+
+    // myGPA가 applyGPAValues에서 몇 번째로 큰지 계산한다.(정렬 후 index를 활용하여 계산한다.)
+    const myGPAIndex = applyGPAValues.sort((a, b) => b - a).findIndex(gpa => gpa === myGPA) + 1;
+
+    const sameApplyGPAValues = sameApplyTimeData.map(data => data.applyGPA);
+
+    const averageGPA_sameApplyTimes = mean(sameApplyGPAValues);
+    const minimumGPA_sameApplyTimes = min(sameApplyGPAValues);
+    const medianGPA_sameApplyTimes = mean(sameApplyGPAValues);
+
+    // myGPA가 applyGPAValues에서 몇 번째로 큰지 계산한다.(정렬 후 index를 활용하여 계산한다.)
+    const myGPAIndex_sameApplyTimes = applyGPAValues.sort((a, b) => b - a).findIndex(gpa => gpa === myGPA) + 1;
+
+    //데이터를 반환할 객체를 정의한다.
+    const returnData = {
+      userApplyData,
+      overallData : {
+        returnApplyData,
+        averageGPA,
+        minimumGPA,
+        medianGPA,
+        myGPAIndex
+      },
+      sameApplyTimesData : {
+        sameApplyTimeData,
+        averageGPA_sameApplyTimes,
+        minimumGPA_sameApplyTimes,
+        medianGPA_sameApplyTimes,
+        myGPAIndex_sameApplyTimes
+      }
+    };
+
+    return returnData;
+  } catch (error) {
+    console.error("getApplicationData error:", error);
+    throw new Error("지원 데이터를 가져오는 중 오류가 발생했습니다.");
   }
 };
 
