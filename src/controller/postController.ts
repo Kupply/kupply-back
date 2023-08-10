@@ -22,7 +22,7 @@ export const createPost = async (
 ) => {
   try {
     const postData = req.body;
-    const createdPost = await postService.createPost();
+    const createdPost = await postService.createPost(postData);
     res.status(201).json(createdPost);
   } catch (err) {
     next(err);

@@ -7,8 +7,7 @@ export const getAllMajors = async (
   next: NextFunction,
 ) => {
   try {
-    const majors = await majorService.getAllMajors(req, res, next);
-
+    const majors = await majorService.getAllMajors();
     res.status(200).json({
       status: 'success',
       data: {
@@ -26,7 +25,8 @@ export const createMajor = async (
   next: NextFunction,
 ) => {
   try {
-    const newMajor = await majorService.createMajor(req, res, next);
+    const majorData = req.body;
+    const newMajor = await majorService.createMajor(majorData);
 
     res.status(201).json({
       status: 'success',
@@ -45,12 +45,9 @@ export const getMajor = async (
   next: NextFunction,
 ) => {
   try {
-    const major = await majorService.getMajor(req, res, next);
-
-    if (!major) {
-      throw { status: 404, message: 'No major found with this id' };
-    }
-
+    req.user;
+    const majorId = req.params.id;
+    const major = await majorService.getMajor(majorId);
     res.status(200).json({
       status: 'success',
       data: {
@@ -68,11 +65,9 @@ export const updateMajor = async (
   next: NextFunction,
 ) => {
   try {
-    const major = await majorService.updateMajor(req, res, next);
-
-    if (!major) {
-      throw { status: 404, message: 'No major found with this id' };
-    }
+    const majorId = req.params.id;
+    const majorData = req.body;
+    const major = await majorService.updateMajor(majorId, majorData);
 
     res.status(200).json({
       status: 'success',
@@ -91,11 +86,8 @@ export const deleteMajor = async (
   next: NextFunction,
 ) => {
   try {
-    const major = majorService.deleteMajor(req, res, next);
-
-    if (!major) {
-      throw { status: 404, message: 'No major found with this id' };
-    }
+    const majorId = req.params.id;
+    await majorService.deleteMajor(majorId);
 
     res.status(204).json({
       status: 'success',
