@@ -7,7 +7,7 @@ export const getAllPosts = async () => {
     const posts = await postModel.find();
     return posts;
   } catch {
-    console.log('error');
+    console.error('error');
   }
 };
 

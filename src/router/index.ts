@@ -3,6 +3,7 @@ import userRouter from './userRouter';
 import majorRouter from './majorRouter';
 import dashboardRouter from './dashboard';
 import postRouter from './postRouter';
+import messageRouter from './messageRouter';
 import pastDataRouter from './pastDataRouter'
 import * as authController from '../controller/authController';
 
@@ -18,6 +19,7 @@ router.use('/user', userRouter);
 router.use('/post', postRouter);
 router.use('/dashboard', dashboardRouter);
 router.use('/major', majorRouter);
+router.use('/message', messageRouter);
 router.use('/pastData', pastDataRouter);
 
 router.get('/', (req, res) => {
