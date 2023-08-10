@@ -42,11 +42,79 @@ export const createApplicationData = async (applyData: applyDataType) => {
 
 export const getApplicationData = async (userId: Types.ObjectId) => {
   try {
-    const user = await Application.findOne({candidateId: userId, applySemester: "2023-1"});
+    // user의 이번 학기 지원 데이터를 찾는다.
+    const userApplyData = await Application.findOne({ candidateId: userId, applySemester: "2023-1" });
 
-    return user;    //DB에서 Id로 user를 찾아서 보내 준다.
-  } catch {
-    console.log('error');
+    if (!userApplyData) {
+      throw new Error("해당 사용자의 지원 데이터를 찾을 수 없습니다.");
+    }
+
+    //학점 데이터를 따로 빼서 저장함.
+    const myGPA = userApplyData.applyGPA; 
+
+    // 지원 1지망이 user와 일치하는 모든 이번 학기 지원 데이터를 가져온다.
+    const allApplyData = await Application.find({
+      applyMajor1: userApplyData.applyMajor1,
+      applySemester: userApplyData.applySemester
+    });
+
+    // 지원 데이터 중 그래프에 필요한 정보만 추출한다.
+    const returnApplyData = allApplyData.map(applyData => ({
+      applyGPA: applyData.applyGPA,
+      applyMajor: applyData.applyMajor1,
+      applyTimes: applyData.applyTimes,
+      isPassed: applyData.pnp
+    }));
+
+    // 재지원 횟수가 일치하는 정보를 따로 빼 놓는다.
+    const returnApplyData_sameApplyTimes = returnApplyData.filter(applyData => applyData.applyTimes === userApplyData.applyTimes);
+    
+    //평균, 최솟값의 통계를 계산한다.
+    const applyGPAValues = returnApplyData.map(data => data.applyGPA);
+
+    const averageGPA = applyGPAValues.reduce((a, b)=> a + b) / applyGPAValues.length;
+    const minimumGPA = Math.min(...applyGPAValues);
+    const numberOfData = applyGPAValues.length;
+
+    // 학점을 정렬하여 중앙값과 현재 유저의 등수를 구한다.
+    const sortedApplyGPAValues = applyGPAValues.sort((a, b) => b - a);
+    const medianGPA = sortedApplyGPAValues[Math.floor(sortedApplyGPAValues.length / 2)];
+    const myGPAIndex = sortedApplyGPAValues.findIndex(gpa => gpa === myGPA) + 1;
+
+    const applyGPAValues_sameApplyTimes = returnApplyData_sameApplyTimes.map(data => data.applyGPA);
+
+    const numberOfData_sameApplyTimes = applyGPAValues_sameApplyTimes.length;
+    const averageGPA_sameApplyTimes = applyGPAValues_sameApplyTimes.reduce((a, b)=> a + b) / applyGPAValues_sameApplyTimes.length;
+    const minimumGPA_sameApplyTimes = Math.min(...applyGPAValues_sameApplyTimes);
+
+    const sortedApplyGPAValues_sameApplyTimes = applyGPAValues_sameApplyTimes.sort((a, b) => b - a);
+    const medianGPA_sameApplyTimes = sortedApplyGPAValues_sameApplyTimes[Math.floor(sortedApplyGPAValues_sameApplyTimes.length / 2)];
+    const myGPAIndex_sameApplyTimes = sortedApplyGPAValues_sameApplyTimes.findIndex(gpa => gpa === myGPA) + 1;
+
+    //데이터를 반환할 객체를 정의한다.
+    const returnData = {
+      userApplyData,
+      overallData : {
+        returnApplyData,
+        numberOfData,
+        averageGPA,
+        minimumGPA,
+        medianGPA,
+        myGPAIndex
+      },
+      sameApplyTimesData : {
+        returnApplyData_sameApplyTimes,
+        numberOfData_sameApplyTimes,
+        averageGPA_sameApplyTimes,
+        minimumGPA_sameApplyTimes,
+        medianGPA_sameApplyTimes,
+        myGPAIndex_sameApplyTimes
+      }
+    };
+
+    return returnData;
+  } catch (error) {
+    throw error;
   }
 };
 

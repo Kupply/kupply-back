@@ -3,6 +3,7 @@ import userRouter from './userRouter';
 import majorRouter from './majorRouter';
 import dashboardRouter from './dashboard';
 import postRouter from './postRouter';
+import pastDataRouter from './pastDataRouter'
 import * as authController from '../controller/authController';
 
 const router = express.Router();
@@ -17,6 +18,7 @@ router.use('/user', userRouter);
 router.use('/post', postRouter);
 router.use('/dashboard', dashboardRouter);
 router.use('/major', majorRouter);
+router.use('/pastData', pastDataRouter);
 
 router.get('/', (req, res) => {
   res.send('Hello World!');
