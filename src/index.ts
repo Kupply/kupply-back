@@ -1,16 +1,17 @@
 import express, { Request, Response } from 'express';
 import http from 'http';
-import router from './router/index';
 import helmet from 'helmet';
-import errorHandler from './middlewares/errorHandler';
 import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+import router from './router/index';
+import errorHandler from './middlewares/errorHandler';
 
 dotenv.config();
 const connectDB = async () => {
   const DbConnectionString = process.env.DBUrl || '';
   try {
     const db = await mongoose.connect(DbConnectionString);
-    console.log('Connected to database ${db.connection.host}');
+    console.log(`Connected to database ${db.connection.host}`);
   } catch (err) {
     console.error('Error: ${err.message}');
     process.exit(1);
@@ -24,6 +25,7 @@ const loadExpressApp = async () => {
 
   app.use(helmet());
   app.use(express.json());
+  app.use(cookieParser());
   app.enable('trust proxy');
 
   app.use(router);

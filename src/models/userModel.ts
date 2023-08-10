@@ -2,7 +2,7 @@ import { Schema, Model, model, Types } from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
-export interface IUser {
+export interface IUser extends Document {
   _id: Types.ObjectId;
   password: string;
   studentId: number;
@@ -11,12 +11,14 @@ export interface IUser {
   name: string;
   nickname: string;
   role: string;
+  refreshToken: string;
   secondMajor: Types.ObjectId;
   passSemester: string;
   passDescription: string;
   passGPA: number;
   wannaSell: boolean;
   hopeMajors: Array<string> | null;
+  checkPassword: (userPassword: string) => Promise<boolean>;
 }
 
 const userSchema = new Schema<IUser>(
@@ -63,6 +65,11 @@ const userSchema = new Schema<IUser>(
         message: 'User role must be either: passer or candidate.',
       },
       required: [true, 'User must have a role.'],
+    },
+    refreshToken: {
+      type: String,
+      default: null,
+      // select: false,
     },
     // info of passer only
     secondMajor: {
@@ -138,7 +145,7 @@ userSchema.pre('save', async function (next) {
 });
 
 userSchema.methods.checkPassword = async function (userPassword: string) {
-  return await bcrypt.compare(userPassword, this.Password);
+  return await bcrypt.compare(userPassword, this.password);
 };
 
-export default model('User', userSchema);
+export default model<IUser>('User', userSchema);
