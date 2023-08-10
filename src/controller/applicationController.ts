@@ -23,7 +23,7 @@ export const getApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = new Types.ObjectId('64c76faea01a83ef15a9f141'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
+    const userId = new Types.ObjectId('64cbc34f50187afa2c0fddd0'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
 
     const userData = await applicationService.getApplicationData(userId); //user Data를 찾아서 보낸다.
     res.send(userData);
