@@ -1,17 +1,21 @@
 import mongoose from 'mongoose';
 import messageModel from '../models/messageModel';
+import User, { IUser } from '../models/userModel';
 
 export const getAllMessages = async (
-  userId: mongoose.Types.ObjectId
+  user : IUser,
+  page : number
 ) => {
   try {
+    const userId = user._id;
+    const itemsPerPage = 10;
     // 본인(user)이 받은 or 보낸 message 조회
     const messages = await messageModel.find({
       $or: [
         { sender: userId }, 
         { receiver: userId }
       ],
-    });
+    }).skip(itemsPerPage * (page - 1)).limit(itemsPerPage).sort({'createdAt' : -1});
     return messages;
   } catch (error) {
     console.error(error);
@@ -19,17 +23,20 @@ export const getAllMessages = async (
 };
 
 export const getConversationBtwUsers = async (
-  user1Id: mongoose.Types.ObjectId,
-  user2Id: mongoose.Types.ObjectId
+  senderId: mongoose.Types.ObjectId,
+  receiverNickname: string,
+  page : number
   ) => {
   try {
-    // 두 명의 user가 주고 받은 message 조회
+    const receiver = await User.find({ "nickname" : receiverNickname });
+    const receiverId = receiver[0]._id;
+    const itemsPerPage = 10;
     const messages = await messageModel.find({
       $or: [
-        { sender: user1Id, receiver: user2Id },
-        { sender: user2Id, receiver: user1Id },
+        { sender: senderId, receiver: receiverId },
+        { sender: receiverId, receiver: senderId },
       ],
-    }).sort('createdAt');
+    }).skip(itemsPerPage * (page - 1)).limit(itemsPerPage).sort({'createdAt' : -1});
     return messages;
   } catch (error) {
     console.error(error);
@@ -37,12 +44,17 @@ export const getConversationBtwUsers = async (
 };
 
 export const createMessage = async (messageData: {
-  senderID: mongoose.Types.ObjectId;
-  receiverID: mongoose.Types.ObjectId;
+  sender: IUser;
+  receiverNickname: string;
   content: string;
 }) => {
   try {
-    const newMessage = new messageModel(messageData);
+    const receiver = await User.find({ 'nickname' : messageData.receiverNickname });
+    const newMessage = new messageModel({
+      "sender" : messageData.sender._id,
+      "receiver" : receiver[0]._id,
+      "content" : messageData.content
+    });
     const createdMessage = await newMessage.save();
     return createdMessage;
   } catch (error) {
