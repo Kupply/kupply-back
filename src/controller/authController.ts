@@ -9,6 +9,7 @@ export const join = async (req: Request, res: Response, next: NextFunction) => {
     res.status(201).json({
       status: 'success',
       data: {
+        message: `${newUser.email}로 인증 링크를 보냈습니다. 이메일 인증을 하여 회원가입을 완료해주세요.`,
         user: newUser,
       },
     });
@@ -77,6 +78,20 @@ export const protect = async (
     }
 
     next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const certifyUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await authService.certifyUser(req.params.certificateToken);
+
+    res.redirect('/');
   } catch (err) {
     next(err);
   }
