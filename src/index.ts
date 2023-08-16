@@ -13,7 +13,7 @@ const connectDB = async () => {
     const db = await mongoose.connect(DbConnectionString);
     console.log(`Connected to database ${db.connection.host}`);
   } catch (err) {
-    console.error('Error: ${err.message}');
+    console.error(err);
     process.exit(1);
   }
 };
