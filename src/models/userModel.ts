@@ -1,5 +1,4 @@
 import { Schema, Model, model, Types } from 'mongoose';
-import validator from 'validator';
 import bcrypt from 'bcryptjs';
 
 export interface IUser extends Document {
@@ -12,6 +11,7 @@ export interface IUser extends Document {
   nickname: string;
   role: string;
   refreshToken: string;
+  certificate: string;
   secondMajor: Types.ObjectId;
   passSemester: string;
   passDescription: string;
@@ -40,7 +40,10 @@ const userSchema = new Schema<IUser>(
       required: [true, 'User must have an email address.'],
       unique: true,
       trim: true,
-      validate: validator.isEmail,
+      match: [
+        /^[a-zA-Z0-9._%+-]+@korea\.ac\.kr$/,
+        'Please fill a valid korea university email address',
+      ],
     },
     firstMajor: {
       type: Schema.Types.ObjectId,
@@ -69,7 +72,12 @@ const userSchema = new Schema<IUser>(
     refreshToken: {
       type: String,
       default: null,
-      // select: false,
+      select: false,
+    },
+    certificate: {
+      type: String,
+      enum: ['pending', 'active'],
+      default: 'pending',
     },
     // info of passer only
     secondMajor: {

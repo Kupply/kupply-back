@@ -1,10 +1,12 @@
 import mongoose from 'mongoose';
 import postModel from '../models/postModel';
+import { IUser } from '../models/userModel';
 
-export const getAllPosts = async () => {
+export const getAllPosts = async (user : IUser, page : number) => {
   try {
-    // DB에 저장된 모든 포스트 조회
-    const posts = await postModel.find();
+    const itemsPerPage = 10;
+    //최신순으로 pagination 된 데이터를 받아 온다.
+    const posts = await postModel.find().skip(itemsPerPage * (page - 1)).limit(itemsPerPage).sort({'createdAt' : -1});
     return posts;
   } catch {
     console.error('error');

@@ -23,7 +23,7 @@ export const getApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = new Types.ObjectId('64cbc34f50187afa2c0fddd0'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
+    const userId = new Types.ObjectId('64d528b131e926b2c8c4094d'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
 
     const userData = await applicationService.getApplicationData(userId); //user Data를 찾아서 보낸다.
     res.send(userData);
@@ -38,7 +38,7 @@ export const deleteApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = new Types.ObjectId('64c28df8f3ad2b9ac18163e1'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
+    const userId = new Types.ObjectId('64d528b131e926b2c8c4094d'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
 
     const userData = await applicationService.deleteApplicationData(userId); //user Data를 찾아서 보낸다.
     res.send(userData);
