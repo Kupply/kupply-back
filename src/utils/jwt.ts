@@ -1,14 +1,20 @@
 import jwt from 'jsonwebtoken';
-import User, { IUser } from '../models/userModel';
+import { Types } from 'mongoose';
+import { IUser } from '../models/userModel';
 
 interface JwtPayload {
-  id: string;
+  id: Types.ObjectId;
+  role: string;
 }
 
 export const createToken = (user: IUser) => {
-  const accessToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY!, {
-    expiresIn: '1h',
-  });
+  const accessToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET_KEY!,
+    {
+      expiresIn: '1h',
+    },
+  );
 
   return accessToken;
 };
@@ -23,7 +29,7 @@ export const createRefreshToken = () => {
 
 export const createCertificateToken = (user: IUser) => {
   const accessToken = jwt.sign(
-    { id: user._id },
+    { id: user._id, role: user.role },
     process.env.JWT_CERTIFICATE_SECRET_KEY!,
     {
       expiresIn: '1h',
@@ -35,12 +41,12 @@ export const createCertificateToken = (user: IUser) => {
 
 export const verifyToken = (accessToken: string) => {
   try {
-    const { id } = jwt.verify(
+    const { id, role } = jwt.verify(
       accessToken,
       process.env.JWT_SECRET_KEY!,
     ) as JwtPayload;
 
-    return id;
+    return { id, role };
   } catch (err) {
     return null;
   }
@@ -56,6 +62,6 @@ export const verifyRefreshToken = (refreshToken: string) => {
 };
 
 export const decodeToken = (accessToken: string) => {
-  const { id } = jwt.decode(accessToken) as JwtPayload;
-  return id;
+  const { id, role } = jwt.decode(accessToken) as JwtPayload;
+  return { id, role };
 };
