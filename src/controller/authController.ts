@@ -3,9 +3,10 @@ import * as authService from '../service/authService';
 
 export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const url: string = `${req.protocol}://${req.get('host')}`;
     const userData = req.body;
     // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
-    const newUser = await authService.join(userData);
+    const newUser = await authService.join(url, userData);
 
     res.status(201).json({
       status: 'success',

@@ -22,7 +22,7 @@ type userDataType = {
   hopeMajors: Array<string> | null;
 };
 
-export const join = async (userData: userDataType) => {
+export const join = async (url: string, userData: userDataType) => {
   const firstMajorName = userData.firstMajor;
   const secondMajorName = userData.secondMajor;
   const firstMajor = (await Major.findOne({
@@ -65,7 +65,7 @@ export const join = async (userData: userDataType) => {
     });
   }
   const certificateToken = jwt.createCertificateToken(newUser);
-  await email.sendAuthEmail(newUser.name, newUser.email, certificateToken);
+  await email.sendAuthEmail(url, newUser.name, newUser.email, certificateToken);
   await newUser.save();
   return newUser;
 };
