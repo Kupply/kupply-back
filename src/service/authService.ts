@@ -1,51 +1,72 @@
+import { Types } from 'mongoose';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import * as jwt from '../utils/jwt';
 import * as email from '../utils/email';
 
-export const join = async (userInfo: IUser) => {
-  const firstMajorName = userInfo.firstMajor;
-  const firstMajor: IMajor | null = await Major.findOne({
+type userDataType = {
+  password: string;
+  studentId: number;
+  email: string;
+  firstMajor: string;
+  name: string;
+  nickname: string;
+  role: string;
+  refreshToken: string;
+  certificate: string;
+  secondMajor: string;
+  passSemester: string;
+  passDescription: string;
+  passGPA: number;
+  wannaSell: boolean;
+  hopeMajors: Array<string> | null;
+};
+
+export const join = async (url: string, userData: userDataType) => {
+  const firstMajorName = userData.firstMajor;
+  const secondMajorName = userData.secondMajor;
+  const firstMajor = (await Major.findOne({
     name: firstMajorName,
-  }).exec();
-  const secondMajorName = userInfo.secondMajor;
-  let newUser: IUser;
+  })) as IMajor;
+
+  let newUser;
 
   if (!secondMajorName) {
     // candidate
-    newUser = await User.create({
-      password: userInfo.password,
-      studentId: userInfo.studentId,
-      email: userInfo.email,
-      firstMajor: firstMajor!._id,
-      name: userInfo.name,
-      nickname: userInfo.nickname,
-      role: userInfo.role,
-      hopeMajors: userInfo.hopeMajors,
+    newUser = new User({
+      password: userData.password,
+      studentId: userData.studentId,
+      email: userData.email,
+      firstMajor: firstMajor._id,
+      name: userData.name,
+      nickname: userData.nickname,
+      role: userData.role,
+      hopeMajors: userData.hopeMajors,
     });
   } else {
     // passer
-    const secondMajor: IMajor | null = await Major.findOne({
+    const secondMajor = (await Major.findOne({
       name: secondMajorName,
-    }).exec();
+    })) as IMajor;
 
-    newUser = await User.create({
-      password: userInfo.password,
-      studentId: userInfo.studentId,
-      email: userInfo.email,
-      firstMajor: firstMajor!._id,
-      name: userInfo.name,
-      nickname: userInfo.nickname,
-      role: userInfo.role,
-      secondMajor: secondMajor!._id,
-      passSemester: userInfo.passSemester,
-      passDescription: userInfo.passDescription,
-      passGPA: userInfo.passGPA,
-      wannaSell: userInfo.wannaSell,
+    newUser = new User({
+      password: userData.password,
+      studentId: userData.studentId,
+      email: userData.email,
+      firstMajor: firstMajor._id,
+      name: userData.name,
+      nickname: userData.nickname,
+      role: userData.role,
+      secondMajor: secondMajor._id,
+      passSemester: userData.passSemester,
+      passDescription: userData.passDescription,
+      passGPA: userData.passGPA,
+      wannaSell: userData.wannaSell,
     });
   }
   const certificateToken = jwt.createCertificateToken(newUser);
-  await email.sendAuthEmail(newUser.name, newUser.email, certificateToken);
+  await email.sendAuthEmail(url, newUser.name, newUser.email, certificateToken);
+  await newUser.save();
   return newUser;
 };
 
@@ -85,8 +106,8 @@ export const login = async (userData: IUser) => {
 
 export const logout = async (accessToken: string) => {
   if (accessToken) {
-    const userId = jwt.decodeToken(accessToken);
-    await User.findByIdAndUpdate(userId, { refreshToken: null });
+    const { id } = jwt.decodeToken(accessToken);
+    await User.findByIdAndUpdate(id, { refreshToken: null });
   }
 };
 
@@ -97,6 +118,8 @@ export const protect = async (accessToken: string, refreshToken: string) => {
   }
 
   let newAccessToken: string = '';
+  let userId: Types.ObjectId;
+  let userRole: string;
 
   // 2) accessToken이 유효한지 확인
   const accessResult = jwt.verifyToken(accessToken);
@@ -104,8 +127,8 @@ export const protect = async (accessToken: string, refreshToken: string) => {
   if (accessResult === null) {
     // 2 - 2) accessToken 만료되었음
     // 3) user model에서 refreshToken 가져오고 유효한지 확인
-    const userId = jwt.decodeToken(accessToken);
-    const user = await User.findById(userId);
+    const { id } = jwt.decodeToken(accessToken);
+    const user = await User.findById(id);
 
     if (!user || !user.refreshToken)
       throw {
@@ -116,8 +139,8 @@ export const protect = async (accessToken: string, refreshToken: string) => {
     if (jwt.verifyRefreshToken(user.refreshToken)) {
       // 3 - 1) refreshToken 유효하다면 accessToken 새로 발급하고 user와 accessToken 리턴
       newAccessToken = jwt.createToken(user);
-
-      return { user, newAccessToken };
+      userId = user.id;
+      userRole = user.role;
     } else {
       // 3 - 2) refreshToken도 만료되었다면 새로 로그인하도록 throw error.
       throw {
@@ -126,21 +149,17 @@ export const protect = async (accessToken: string, refreshToken: string) => {
       };
     }
   } else {
-    // 2 - 1) accessToken이 유효하다면 유저 리턴
-    const user = await User.findById(accessResult);
-
-    // 실행되는 일 없을 것임, ts에러 떠서 추가.
-
-    if (!user) throw { status: 400, message: 'Bad Request' };
-
-    return { user, newAccessToken };
+    userId = accessResult.id;
+    userRole = accessResult.role;
   }
+
+  return { userId, userRole, newAccessToken };
 };
 
 export const certifyUser = async (certificateToken: string) => {
-  const userId = jwt.decodeToken(certificateToken);
+  const { id } = jwt.decodeToken(certificateToken);
   const updatedUser = await User.findByIdAndUpdate(
-    userId,
+    id,
     { certificate: 'active' },
     {
       new: true,

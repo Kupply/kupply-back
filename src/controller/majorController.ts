@@ -45,7 +45,6 @@ export const getMajor = async (
   next: NextFunction,
 ) => {
   try {
-    req.user;
     const majorId = req.params.id;
     const major = await majorService.getMajor(majorId);
     res.status(200).json({

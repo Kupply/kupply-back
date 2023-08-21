@@ -3,8 +3,10 @@ import * as authService from '../service/authService';
 
 export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
+    const url: string = `${req.protocol}://${req.get('host')}`;
     const userData = req.body;
-    const newUser = await authService.join(userData);
+    // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
+    const newUser = await authService.join(url, userData);
 
     res.status(201).json({
       status: 'success',
@@ -25,6 +27,7 @@ export const login = async (
 ) => {
   try {
     const userData = req.body;
+    // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
     const { updatedUser, accessToken, refreshToken } = await authService.login(
       userData,
     );
@@ -64,12 +67,14 @@ export const protect = async (
   next: NextFunction,
 ) => {
   try {
-    const { user, newAccessToken } = await authService.protect(
+    const { userId, userRole, newAccessToken } = await authService.protect(
       req.cookies.accessToken,
       req.cookies.refreshToken,
     );
 
-    req.user = user;
+    req.userId = userId;
+    req.userRole = userRole;
+
     if (newAccessToken !== '') {
       res.cookie('accessToken', newAccessToken, {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
