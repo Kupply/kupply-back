@@ -160,10 +160,14 @@ export const certifyUser = async (certificateToken: string) => {
   const { id } = jwt.decodeToken(certificateToken);
   const updatedUser = await User.findByIdAndUpdate(
     id,
-    { certificate: 'active' },
+    { 
+      certificate: 'active',
+      expiresAt: null,  
+    },
     {
       new: true,
     },
+    
   );
 
   if (!updatedUser)
