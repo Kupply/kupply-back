@@ -12,6 +12,9 @@ export interface IUser extends Document {
   role: string;
   refreshToken: string;
   certificate: string;
+  createdAt: Date;
+  updateCreatedAt: () => Promise<void>; // 메서드 추가
+  expiresAt: Date;
   secondMajor: Types.ObjectId;
   passSemester: string;
   passDescription: string;
@@ -78,6 +81,15 @@ const userSchema = new Schema<IUser>(
       type: String,
       enum: ['pending', 'active'],
       default: 'pending',
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+    expiresAt: {
+      type: Date,
+      default: undefined,
+      index: { expires: '2m' }, 
     },
     // info of passer only
     secondMajor: {
@@ -147,8 +159,15 @@ function arrayLimit(val: string[]) {
 
 userSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
-
   this.password = await bcrypt.hash(this.password!, 12);
+  
+  if (this.certificate === 'pending') {
+    this.expiresAt = new Date(Date.now() + 2*60*1000);  // 2분 후
+  } else {
+    // @ts-ignore
+    this.expiresAt = undefined;   // certificate가 'active'일 때는 expire값을 없앰
+  }
+
   next();
 });
 
