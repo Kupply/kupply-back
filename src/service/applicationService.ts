@@ -176,12 +176,9 @@ export const updateApplicationData = async (
 ) => {
   try {
     const { applySemester } = applyData; //applyData를 받아 온다.
-    const isUserValid = (await User.find({ _id: candidateId })).length; //유효성 검사를 위해 실제 존재하는 User인지 검사한다.
 
     if (applySemester && applySemester !== currentSemester) {
       throw new Error('현재 학기가 아닌 지원 정보는 추가할 수 없습니다.');
-    } else if (isUserValid === 0) {
-      throw new Error('존재하지 않는 사용자입니다.');
     } else {
       if (applyData.applyMajor1) {
         const applyMajor1 = (await Major.findOne({
