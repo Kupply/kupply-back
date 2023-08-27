@@ -3,10 +3,9 @@ import * as authService from '../service/authService';
 
 export const join = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const url: string = `${req.protocol}://${req.get('host')}`;
     const userData = req.body;
     // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
-    const newUser = await authService.join(url, userData);
+    const newUser = await authService.join(userData);
 
     res.status(201).json({
       status: 'success',
@@ -88,15 +87,39 @@ export const protect = async (
   }
 };
 
-export const certifyUser = async (
+export const sendEmail = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    await authService.certifyUser(req.params.certificateToken);
+    const { email } = req.body;
 
-    res.redirect('/');
+    await authService.sendEmail(email);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Email sent successfully',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const certifyEmail = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email, code } = req.body;
+
+    await authService.certifyEmail(email, code);
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Email verified successfully',
+    });
   } catch (err) {
     next(err);
   }

@@ -1,8 +1,9 @@
 import { Types } from 'mongoose';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import Email from '../models/emailModel';
 import * as jwt from '../utils/jwt';
-import * as email from '../utils/email';
+import { sendAuthEmail } from '../utils/email';
 
 type userDataType = {
   password: string;
@@ -22,7 +23,8 @@ type userDataType = {
   hopeMajors: Array<string> | null;
 };
 
-export const join = async (url: string, userData: userDataType) => {
+export const join = async (userData: userDataType) => {
+  // TODO: 인증된 email인지 확인?
   const firstMajorName = userData.firstMajor;
   const secondMajorName = userData.secondMajor;
   const firstMajor = (await Major.findOne({
@@ -64,8 +66,7 @@ export const join = async (url: string, userData: userDataType) => {
       wannaSell: userData.wannaSell,
     });
   }
-  const certificateToken = jwt.createCertificateToken(newUser);
-  await email.sendAuthEmail(url, newUser.name, newUser.email, certificateToken);
+
   await newUser.save();
   return newUser;
 };
@@ -83,11 +84,6 @@ export const login = async (userData: IUser) => {
     throw { status: 401, message: '존재하지 않는 이메일입니다.' };
   } else if (!(await user.checkPassword(password))) {
     throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
-  } else if (user.certificate != 'active') {
-    throw {
-      status: 401,
-      message: '이메일을 인증하여 회원가입을 완료하시고 다시 로그인해 주세요.',
-    };
   }
 
   const accessToken = jwt.createToken(user);
@@ -156,19 +152,50 @@ export const protect = async (accessToken: string, refreshToken: string) => {
   return { userId, userRole, newAccessToken };
 };
 
-export const certifyUser = async (certificateToken: string) => {
-  const { id } = jwt.decodeToken(certificateToken);
-  const updatedUser = await User.findByIdAndUpdate(
-    id,
-    { certificate: 'active' },
-    {
-      new: true,
-    },
-  );
+const generateRandomString = (min: number, max: number): string => {
+  let randNum = Math.floor(Math.random() * (max - min + 1)) + min;
+  return randNum.toString();
+};
 
-  if (!updatedUser)
+export const sendEmail = async (userEmail: string) => {
+  const email = await Email.findOne({ email: userEmail });
+
+  // 인증 완료된 이메일일 때
+  if (email && email.certificate == true) {
     throw {
-      status: 404,
-      message: '존재하지 않는 유저입니다. 회원가입 후 재시도해주세요.',
+      status: 400,
+      message: '이미 회원가입이 완료된 이메일 입니다. 로그인해주세요.',
     };
+  }
+
+  // 없거나, 인증이 완료되지 않은 이메일일 때
+  const code = generateRandomString(111111, 999999);
+  await sendAuthEmail(userEmail, code);
+
+  if (email) {
+    email.code = code;
+    await email.save();
+  } else {
+    await Email.create({
+      email: userEmail,
+      code: code,
+    });
+  }
+};
+
+export const certifyEmail = async (userEmail: string, code: string) => {
+  const email = await Email.findOne({ email: userEmail, code: code });
+
+  if (!email) {
+    throw { status: 400, message: '인증번호가 일치하지 않습니다.' };
+  }
+  if (email.createdAt.getTime() + 5 * 60 * 1000 < Date.now()) {
+    throw {
+      status: 400,
+      message: '유효 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.',
+    };
+  }
+  email.certificate = true;
+  await email.save();
+  return;
 };

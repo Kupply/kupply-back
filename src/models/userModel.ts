@@ -11,7 +11,6 @@ export interface IUser extends Document {
   nickname: string;
   role: string;
   refreshToken: string;
-  certificate: string;
   secondMajor: Types.ObjectId;
   passSemester: string;
   passDescription: string;
@@ -73,11 +72,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: null,
       select: false,
-    },
-    certificate: {
-      type: String,
-      enum: ['pending', 'active'],
-      default: 'pending',
     },
     // info of passer only
     secondMajor: {
