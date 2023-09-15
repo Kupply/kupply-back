@@ -124,3 +124,21 @@ export const certifyEmail = async (
     next(err);
   }
 };
+
+export const nicknameCheck = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { nickname } = req.body;
+
+    const isSuccess = await authService.nicknameCheck(nickname);
+
+    res.status(200).json({
+      isSuccess: isSuccess,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
