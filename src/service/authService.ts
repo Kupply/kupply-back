@@ -199,3 +199,13 @@ export const certifyEmail = async (userEmail: string, code: string) => {
   await email.save();
   return;
 };
+
+export const nicknameCheck = async (Nickname: String) => {
+  const nicknameFindResult = await User.find({nickname: Nickname});
+
+  console.log(nicknameFindResult);
+  if(nicknameFindResult.length > 0)
+    return false;
+  else
+    return true;
+};

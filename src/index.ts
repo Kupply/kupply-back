@@ -22,6 +22,9 @@ const mongoose = require('mongoose');
 const loadExpressApp = async () => {
   await connectDB();
   const app = express();
+  const cors = require('cors')
+
+  app.use(cors({ credentials: true, origin: true }));
 
   app.use(helmet());
   app.use(express.json());
