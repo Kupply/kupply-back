@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
-import * as applicationService from '../service/applicationService';
 import { Types } from 'mongoose';
+import * as applicationService from '../service/applicationService';
 
 export const createApplicationData = async (
   req: Request,
@@ -8,10 +8,20 @@ export const createApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    let applyData = req.body; //POST 방식으로 정보를 받아 온다.
+    const userId = req.userId as Types.ObjectId;
+    const applyData = req.body; //POST 방식으로 정보를 받아 온다.
 
-    await applicationService.createApplicationData(applyData);
-    res.status(200).send();
+    const userApplicationData = await applicationService.createApplicationData(
+      userId,
+      applyData,
+    );
+
+    res.status(201).send({
+      status: 'success',
+      data: {
+        userApplicationData,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -23,10 +33,17 @@ export const getApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = new Types.ObjectId('64d528b131e926b2c8c4094d'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
+    const userId = req.userId as Types.ObjectId;
 
-    const userData = await applicationService.getApplicationData(userId); //user Data를 찾아서 보낸다.
-    res.send(userData);
+    const userApplicationData = await applicationService.getApplicationData(
+      userId,
+    ); //user Data를 찾아서 보낸다.
+    res.status(200).send({
+      status: 'success',
+      data: {
+        userApplicationData,
+      },
+    });
   } catch (err) {
     next(err);
   }
@@ -38,10 +55,13 @@ export const deleteApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    const userId = new Types.ObjectId('64d528b131e926b2c8c4094d'); //임의로 설정하였고, 원래대로라면 request에서 받아야 함.
+    const userId = req.userId as Types.ObjectId;
 
-    const userData = await applicationService.deleteApplicationData(userId); //user Data를 찾아서 보낸다.
-    res.send(userData);
+    await applicationService.deleteApplicationData(userId);
+    res.status(204).json({
+      status: 'success',
+      data: null,
+    });
   } catch (err) {
     next(err);
   }
@@ -53,10 +73,15 @@ export const updateApplicationData = async (
   next: NextFunction,
 ) => {
   try {
-    let applyData = req.body; //POST 방식으로 정보를 받아 온다.
+    const userId = req.userId as Types.ObjectId;
+    const applyData = req.body; //POST 방식으로 정보를 받아 온다.
 
-    await applicationService.updateApplicationData(applyData);
-    res.status(200).send();
+    const updatedApplicationData =
+      await applicationService.updateApplicationData(userId, applyData);
+    res.status(200).send({
+      status: 'success',
+      data: updatedApplicationData,
+    });
   } catch (err) {
     next(err);
   }
