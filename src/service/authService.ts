@@ -174,6 +174,7 @@ export const sendEmail = async (userEmail: string) => {
 
   if (email) {
     email.code = code;
+    email.createdAt = new Date();
     await email.save();
   } else {
     await Email.create({
@@ -187,9 +188,11 @@ export const certifyEmail = async (userEmail: string, code: string) => {
   const email = await Email.findOne({ email: userEmail, code: code });
 
   if (!email) {
+    console.log(1);
     throw { status: 400, message: '인증번호가 일치하지 않습니다.' };
   }
-  if (email.createdAt.getTime() + 5 * 60 * 1000 < Date.now()) {
+  if (email.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
+    console.log(2);
     throw {
       status: 400,
       message: '유효 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.',
