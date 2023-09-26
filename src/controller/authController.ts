@@ -25,27 +25,29 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const userData = req.body;
+    const { isRememberOn } = req.body;
     // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
     const { updatedUser, accessToken, refreshToken } = await authService.login(
-      userData,
+      req.body,
     );
 
     res.cookie('accessToken', accessToken, {
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
     });
-    res.cookie('refreshToken', refreshToken, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      httpOnly: true,
-    });
+    if(isRememberOn){
+      res.cookie('refreshToken', refreshToken, {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        httpOnly: true,
+      });
+    }
 
     res.status(200).json({
       status: 'success',
       data: {
         user: updatedUser,
         accessToken,
-        refreshToken,
+        refreshToken: isRememberOn ? refreshToken : undefined,
       },
     });
   } catch (err) {

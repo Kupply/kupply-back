@@ -8,6 +8,7 @@ import { sendAuthEmail } from '../utils/email';
 type userDataType = {
   password: string;
   studentId: number;
+  phoneNumber: string;
   email: string;
   firstMajor: string;
   name: string;
@@ -39,6 +40,7 @@ export const join = async (userData: userDataType) => {
       password: userData.password,
       studentId: userData.studentId,
       email: userData.email,
+      phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       name: userData.name,
       nickname: userData.nickname,
@@ -54,6 +56,7 @@ export const join = async (userData: userDataType) => {
     newUser = new User({
       password: userData.password,
       studentId: userData.studentId,
+      phoneNumber: userData.phoneNumber,
       email: userData.email,
       firstMajor: firstMajor._id,
       name: userData.name,
@@ -61,13 +64,17 @@ export const join = async (userData: userDataType) => {
       role: userData.role,
       secondMajor: secondMajor._id,
       passSemester: userData.passSemester,
-      passDescription: userData.passDescription,
       passGPA: userData.passGPA,
-      wannaSell: userData.wannaSell,
     });
   }
-
   await newUser.save();
+  //회원가입 완료 시 저장된 email을 certify 처리한다.
+  const email = await Email.findOne({ email: userData.email });
+  if(email){
+    email.certificate = true;
+    await email.save();
+  }
+
   return newUser;
 };
 
@@ -174,6 +181,7 @@ export const sendEmail = async (userEmail: string) => {
 
   if (email) {
     email.code = code;
+    email.createdAt = new Date();
     await email.save();
   } else {
     await Email.create({
@@ -187,15 +195,18 @@ export const certifyEmail = async (userEmail: string, code: string) => {
   const email = await Email.findOne({ email: userEmail, code: code });
 
   if (!email) {
+    console.log(1);
     throw { status: 400, message: '인증번호가 일치하지 않습니다.' };
   }
-  if (email.createdAt.getTime() + 5 * 60 * 1000 < Date.now()) {
+  if (email.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
+    console.log(2);
     throw {
       status: 400,
       message: '유효 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.',
     };
   }
-  email.certificate = true;
+  //인증 완료는 회원가입이 끝난 시점에 처리되어야 한다.
+  //email.certificate = true;
   await email.save();
   return;
 };
