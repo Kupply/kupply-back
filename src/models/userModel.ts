@@ -8,7 +8,6 @@ export interface IUser extends Document {
   phoneNumber: string;
   email: string;
   firstMajor: Types.ObjectId;
-  name: string;
   nickname: string;
   role: string;
   refreshToken: string;
@@ -58,11 +57,6 @@ const userSchema = new Schema<IUser>(
       type: Schema.Types.ObjectId,
       ref: 'Major',
       required: true,
-    },
-    name: {
-      type: String,
-      required: [true, 'User must have a name.'],
-      trim: true,
     },
     nickname: {
       type: String,
