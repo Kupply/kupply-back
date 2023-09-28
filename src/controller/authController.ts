@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import * as authService from '../service/authService';
 
 export const join = async (req: Request, res: Response, next: NextFunction) => {
@@ -10,7 +11,7 @@ export const join = async (req: Request, res: Response, next: NextFunction) => {
     res.status(201).json({
       status: 'success',
       data: {
-        message: `${newUser.email}로 인증 링크를 보냈습니다. 이메일 인증을 하여 회원가입을 완료해주세요.`,
+        message: `회원가입이 완료되었습니다.`,
         user: newUser,
       },
     });
@@ -35,7 +36,7 @@ export const login = async (
       expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
       httpOnly: true,
     });
-    if(isRememberOn){
+    if (isRememberOn) {
       res.cookie('refreshToken', refreshToken, {
         expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
         httpOnly: true,
@@ -139,6 +140,43 @@ export const nicknameCheck = async (
 
     res.status(200).json({
       isSuccess: isSuccess,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { userEmail } = req.body;
+    await authService.forgotPassword(userEmail);
+
+    res.status(200).json({
+      status: 'success',
+      message: `${userEmail}로 임시 비밀번호를 보냈습니다.`,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId as Types.ObjectId;
+    const { newPassword } = req.body;
+
+    await authService.resetPassword(userId, newPassword);
+
+    res.status(200).json({
+      status: 'success',
     });
   } catch (err) {
     next(err);

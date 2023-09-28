@@ -3,7 +3,7 @@ import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Email from '../models/emailModel';
 import * as jwt from '../utils/jwt';
-import { sendAuthEmail } from '../utils/email';
+import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
 type userDataType = {
   password: string;
@@ -25,7 +25,12 @@ type userDataType = {
 };
 
 export const join = async (userData: userDataType) => {
-  // TODO: 인증된 email인지 확인?
+  // 인증된 email인지 확인
+  const email = await Email.findOne({ email: userData.email });
+  if (!email || !email.certificate) {
+    throw { status: 401, message: '이메일 인증을 먼저 완료해주세요.' };
+  }
+
   const firstMajorName = userData.firstMajor;
   const secondMajorName = userData.secondMajor;
   const firstMajor = (await Major.findOne({
@@ -68,12 +73,10 @@ export const join = async (userData: userDataType) => {
     });
   }
   await newUser.save();
-  //회원가입 완료 시 저장된 email을 certify 처리한다.
-  const email = await Email.findOne({ email: userData.email });
-  if(email){
-    email.certificate = true;
-    await email.save();
-  }
+
+  // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
+  // email.certificate = true;
+  // await email.save();
 
   return newUser;
 };
@@ -165,23 +168,30 @@ const generateRandomString = (min: number, max: number): string => {
 };
 
 export const sendEmail = async (userEmail: string) => {
+  const user = await User.findOne({ email: userEmail });
   const email = await Email.findOne({ email: userEmail });
 
-  // 인증 완료된 이메일일 때
-  if (email && email.certificate == true) {
+  /*
+  user에 있으면 이미 회원가입이 완료된 이메일이라고 알림
+  certifyEmail에서 email.certificate true로 바꾸고 join에서 확인
+  이메일 인증 완료하고 회원가입 단계에서 그만 두었을 때, user 모델에는 그 이메일이 없기에 다시 이메일 보내는 것에 문제 없음.
+  */
+  // 회원가입 완료된 이메일일 때
+  if (user) {
     throw {
       status: 400,
       message: '이미 회원가입이 완료된 이메일 입니다. 로그인해주세요.',
     };
   }
 
-  // 없거나, 인증이 완료되지 않은 이메일일 때
+  // 회원가입 완료 안된 이메일일 때
   const code = generateRandomString(111111, 999999);
   await sendAuthEmail(userEmail, code);
 
   if (email) {
     email.code = code;
     email.createdAt = new Date();
+    email.certificate = false; // 굳이 필요한가?
     await email.save();
   } else {
     await Email.create({
@@ -192,31 +202,74 @@ export const sendEmail = async (userEmail: string) => {
 };
 
 export const certifyEmail = async (userEmail: string, code: string) => {
-  const email = await Email.findOne({ email: userEmail, code: code });
+  const email = await Email.findOne({ email: userEmail });
 
   if (!email) {
-    console.log(1);
+    throw { status: 400, message: '존재하지 않는 이메일 입니다.' };
+  } else if (email.code !== code) {
     throw { status: 400, message: '인증번호가 일치하지 않습니다.' };
-  }
-  if (email.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
-    console.log(2);
+  } else if (email.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
     throw {
       status: 400,
       message: '유효 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.',
     };
   }
-  //인증 완료는 회원가입이 끝난 시점에 처리되어야 한다.
-  //email.certificate = true;
+  //인증 완료는 회원가입이 끝난 시점에 처리되어야 한다. -> 방식 수정
+  email.certificate = true;
   await email.save();
   return;
 };
 
-export const nicknameCheck = async (Nickname: String) => {
-  const nicknameFindResult = await User.find({nickname: Nickname});
+export const nicknameCheck = async (Nickname: string) => {
+  const nicknameFindResult = await User.find({ nickname: Nickname });
 
-  console.log(nicknameFindResult);
-  if(nicknameFindResult.length > 0)
-    return false;
-  else
-    return true;
+  if (nicknameFindResult.length > 0) return false;
+  else return true;
 };
+
+const generateRandomPassword = () => {
+  const allowedChars =
+    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*';
+
+  let password = '';
+
+  const passwordLength = 8 + Math.floor(Math.random() * 13);
+  while (password.length < passwordLength) {
+    const randomIndex = Math.floor(Math.random() * allowedChars.length);
+    password += allowedChars[randomIndex];
+  }
+
+  return password;
+};
+
+export const forgotPassword = async (userEmail: string) => {
+  const user = await User.findOne({ email: userEmail }).select('+password');
+
+  if (!user) {
+    throw {
+      status: 400,
+      message:
+        '존재하지 않는 이메일입니다. 회원가입을 통해 서비스에 가입해 주세요.',
+    };
+  }
+
+  const oldPassword = user.password;
+  const temporaryPassword = generateRandomPassword();
+
+  try {
+    user.password = temporaryPassword;
+    await user.save();
+
+    await sendTempPassword(userEmail, temporaryPassword);
+  } catch (err) {
+    // 중간에 오류났을 때 원래 비밀번호로 reset
+    user.password = oldPassword;
+    await user.save();
+    throw { status: 500, message: '재시도해주세요.' };
+  }
+};
+
+export const resetPassword = async (
+  userId: Types.ObjectId,
+  newPassword: string,
+) => {};
