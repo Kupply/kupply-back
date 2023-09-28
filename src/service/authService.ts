@@ -5,26 +5,7 @@ import Email from '../models/emailModel';
 import * as jwt from '../utils/jwt';
 import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
-type userDataType = {
-  password: string;
-  studentId: number;
-  phoneNumber: string;
-  email: string;
-  firstMajor: string;
-  name: string;
-  nickname: string;
-  role: string;
-  refreshToken: string;
-  certificate: string;
-  secondMajor: string;
-  passSemester: string;
-  passDescription: string;
-  passGPA: number;
-  wannaSell: boolean;
-  hopeMajors: Array<string> | null;
-};
-
-export const join = async (userData: userDataType) => {
+export const join = async (userData: IUser) => {
   // 인증된 email인지 확인
   const email = await Email.findOne({ email: userData.email });
   if (!email || !email.certificate) {
@@ -47,7 +28,6 @@ export const join = async (userData: userDataType) => {
       email: userData.email,
       phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
-      name: userData.name,
       nickname: userData.nickname,
       role: userData.role,
       hopeMajors: userData.hopeMajors,
@@ -64,7 +44,6 @@ export const join = async (userData: userDataType) => {
       phoneNumber: userData.phoneNumber,
       email: userData.email,
       firstMajor: firstMajor._id,
-      name: userData.name,
       nickname: userData.nickname,
       role: userData.role,
       secondMajor: secondMajor._id,
@@ -271,5 +250,21 @@ export const forgotPassword = async (userEmail: string) => {
 
 export const resetPassword = async (
   userId: Types.ObjectId,
+  oldPassword: string,
   newPassword: string,
-) => {};
+) => {
+  const user = await User.findOne({ id: userId }).select('+password');
+
+  if (!user) {
+    throw {
+      status: 400,
+      message:
+        '로그인한 유저만 비밀번호를 변경할 수 있으므로, 실행되는 일 없을 것임',
+    };
+  } else if (!(await user.checkPassword(oldPassword))) {
+    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
+  }
+
+  user.password = newPassword;
+  await user.save();
+};

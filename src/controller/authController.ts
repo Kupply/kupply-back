@@ -58,6 +58,8 @@ export const login = async (
 
 export const logout = async (req: Request, res: Response) => {
   await authService.logout(req.cookies.accessToken);
+  req.userId = undefined;
+  req.userRole = undefined;
   res.clearCookie('accessToken', { httpOnly: true });
   res.clearCookie('refreshToken', { httpOnly: true });
   res.status(200).json({ status: 'success' });
@@ -171,12 +173,13 @@ export const resetPassword = async (
 ) => {
   try {
     const userId = req.userId as Types.ObjectId;
-    const { newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
 
-    await authService.resetPassword(userId, newPassword);
+    await authService.resetPassword(userId, oldPassword, newPassword);
 
     res.status(200).json({
       status: 'success',
+      message: '비밀번호가 성공적으로 변경되었습니다.',
     });
   } catch (err) {
     next(err);
