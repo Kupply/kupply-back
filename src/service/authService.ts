@@ -31,6 +31,8 @@ export const join = async (userData: IUser) => {
       nickname: userData.nickname,
       role: userData.role,
       hopeMajors: userData.hopeMajors,
+      hopeSemester: userData.hopeSemester,
+      curGPA: userData.curGPA,
     });
   } else {
     // passer
