@@ -12,6 +12,7 @@ export interface IUser extends Document {
   nickname: string;
   role: string;
   refreshToken: string;
+  totalReport: number;
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -78,6 +79,10 @@ const userSchema = new Schema<IUser>(
       type: String,
       default: null,
       select: false,
+    },
+    totalReport: {
+      type: Number,
+      default: 0,
     },
     // info of passer only
     secondMajor: {
