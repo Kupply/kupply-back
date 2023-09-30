@@ -31,6 +31,8 @@ export const join = async (userData: IUser) => {
       nickname: userData.nickname,
       role: userData.role,
       hopeMajors: userData.hopeMajors,
+      hopeSemester: userData.hopeSemester,
+      curGPA: userData.curGPA,
     });
   } else {
     // passer
@@ -98,7 +100,7 @@ export const logout = async (accessToken: string) => {
 
 export const protect = async (accessToken: string, refreshToken: string) => {
   // 1) 토큰이 있는지 확인, 없으면 로그인하도록.
-  if (!accessToken || !refreshToken) {
+  if (!accessToken && !refreshToken) {
     throw { status: 401, message: '로그인 후 재시도해주세요.' };
   }
 
