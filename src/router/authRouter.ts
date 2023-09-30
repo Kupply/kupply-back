@@ -9,5 +9,7 @@ router.get('/logout', authController.logout);
 router.post('/sendEmail', authController.sendEmail);
 router.post('/certifyEmail', authController.certifyEmail);
 router.post('/nicknameCheck', authController.nicknameCheck);
+router.post('/forgotPassword', authController.forgotPassword);
+router.post('/resetPassword', authController.resetPassword);
 
 export default router;

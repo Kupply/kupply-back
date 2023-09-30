@@ -15,7 +15,9 @@ const emailSchema = new Schema({
   },
   createdAt: {
     type: Date,
-    default: Date.now() + 9 * 60 * 60 * 1000,
+    default: function () {
+      return Date.now();
+    },
   },
   certificate: {
     type: Boolean,
