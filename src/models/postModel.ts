@@ -21,6 +21,10 @@ const postSchema = new Schema(
       type: String,
       required: [true, 'Post must have a content.'],
     },
+    totalReport: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     toJSON: { virtuals: true },

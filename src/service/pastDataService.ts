@@ -140,7 +140,7 @@ type MajorOptions =
   | 'mathematics'
   | 'chemistry'
   | 'media'
-  | 'food'
+  | 'foodecon'
   | 'computer';
 
 const majorNameMapping = {
@@ -151,7 +151,7 @@ const majorNameMapping = {
   mathematics: '수학과',
   chemistry: '화학과',
   media: '미디어학부',
-  food: '식품자원경제학과',
+  foodecon: '식품자원경제학과',
   computer: '컴퓨터학과',
 };
 
@@ -159,6 +159,25 @@ type GPAData = {
   gpa: number;
   num: number;
 };
+
+function findClosestKey(map: Map<number, number>, target: number): number {
+  if (map.has(target)) {
+    return target;
+  }
+
+  let closestKey = target;
+  let closestDifference = Infinity;
+
+  for (const key of map.keys()) {
+    const difference = Math.abs(target - key);
+    if (difference < closestDifference) {
+      closestDifference = difference;
+      closestKey = key;
+    }
+  }
+
+  return closestKey;
+}
 
 export const getPastDataByMajorAndSemester = async (
   majorName: string,
@@ -177,25 +196,25 @@ export const getPastDataByMajorAndSemester = async (
     };
   }
 
-  let semesterArray: string[] = [];
-  if (semester === 'all') {
-    semesterArray = [
-      '2023-1',
-      '2022-2',
-      '2022-1',
-      '2021-2',
-      '2021-1',
-      '2020-2',
-      '2020-1',
-    ];
-  } else {
-    semesterArray = [semester];
-  }
+  // 초기값
+  let passedGPACountArray: GPAData[] = [];
+  let passedMeanGPAData: GPAData = { gpa: 0, num: 0 };
+  let passedMedianGPAData: GPAData = { gpa: 0, num: 0 };
+  let passedModeGPAData: GPAData = { gpa: 0, num: 0 };
+  let passedMinimumGPAData: GPAData = { gpa: 0, num: 0 };
+  let passedNumberOfData: number = 0;
 
-  const majorApplyData_semester = await Application.find({
-    applyMajor1: majorData._id,
-    applySemester: { $in: semesterArray },
-  });
+  let majorApplyData_semester;
+  if (semester === 'all') {
+    majorApplyData_semester = await Application.find({
+      applyMajor1: majorData._id,
+    });
+  } else {
+    majorApplyData_semester = await Application.find({
+      applyMajor1: majorData._id,
+      applySemester: semester,
+    });
+  }
 
   //전공에 해당되는 데이터가 없을 때
   if (majorApplyData_semester.length === 0) {
@@ -208,12 +227,12 @@ export const getPastDataByMajorAndSemester = async (
         numberOfData: 0,
       },
       passedData: {
-        passedGPACountMap: [],
-        passedMeanGPAData: { gpa: 0, num: 0 },
-        passedMedianGPAData: { gpa: 0, num: 0 },
-        passedModeGPAData: { gpa: 0, num: 0 },
-        passedMinimumGPAData: { gpa: 0, num: 0 },
-        passedNumberOfData: 0,
+        passedGPACountArray,
+        passedMeanGPAData,
+        passedMedianGPAData,
+        passedModeGPAData,
+        passedMinimumGPAData,
+        passedNumberOfData,
       },
     };
     // 프런트에서 개수는 확인할 수 있도록.
@@ -246,74 +265,81 @@ export const getPastDataByMajorAndSemester = async (
     sortedApplyGPAValues[Math.floor(sortedApplyGPAValues.length / 2)];
 
   //합격자에 대한 통계도 구해 준다.
-  const applyGPAValues_passed = returnApplyData_passed.map(
-    (data) => data.applyGPA,
-  );
-  const passedNumberOfData = applyGPAValues_passed.length;
+  if (returnApplyData_passed.length > 0) {
+    const applyGPAValues_passed = returnApplyData_passed.map(
+      (data) => data.applyGPA,
+    );
+    passedNumberOfData = applyGPAValues_passed.length;
 
-  // 각 gpa 별로 몇 개의 data가 해당되는지.
-  const passedGPACountMap: Map<number, number> = new Map();
-  applyGPAValues_passed.forEach((gpa) => {
-    if (passedGPACountMap.has(gpa)) {
-      passedGPACountMap.set(gpa, passedGPACountMap.get(gpa)! + 1);
-    } else {
-      passedGPACountMap.set(gpa, 1);
-    }
-  });
+    // 각 gpa 별로 몇 개의 data가 해당되는지.
+    const passedGPACountMap: Map<number, number> = new Map();
+    applyGPAValues_passed.forEach((gpa) => {
+      if (passedGPACountMap.has(gpa)) {
+        passedGPACountMap.set(gpa, passedGPACountMap.get(gpa)! + 1);
+      } else {
+        passedGPACountMap.set(gpa, 1);
+      }
+    });
 
-  // 합격자 평균 GPA
-  const meanGPA_passed =
-    applyGPAValues_passed.reduce((a, b) => a + b) /
-    applyGPAValues_passed.length;
-  const meanGPANum_passed = passedGPACountMap.get(meanGPA_passed) || 0;
-  const passedMeanGPAData: GPAData = {
-    gpa: meanGPA_passed,
-    num: meanGPANum_passed,
-  };
+    // 합격자 평균 GPA
+    const meanGPA_passed = parseFloat(
+      (
+        applyGPAValues_passed.reduce((a, b) => a + b) /
+        applyGPAValues_passed.length
+      ).toFixed(2),
+    );
+    const meanGPANum_passed = passedGPACountMap.get(
+      findClosestKey(passedGPACountMap, meanGPA_passed),
+    )!;
+    passedMeanGPAData = {
+      gpa: meanGPA_passed,
+      num: meanGPANum_passed,
+    };
 
-  // 합격자 최소 GPA
-  const minimumGPA_passed = Math.min(...applyGPAValues_passed);
-  const minimumGPANum_passed = passedGPACountMap.get(minimumGPA_passed) || 0;
-  const passedMinimumGPAData: GPAData = {
-    gpa: minimumGPA_passed,
-    num: minimumGPANum_passed,
-  };
+    // 합격자 최소 GPA
+    const minimumGPA_passed = Math.min(...applyGPAValues_passed);
+    const minimumGPANum_passed = passedGPACountMap.get(minimumGPA_passed)!;
+    passedMinimumGPAData = {
+      gpa: minimumGPA_passed,
+      num: minimumGPANum_passed,
+    };
 
-  const sortedApplyGPAValues_passed = applyGPAValues_passed.sort(
-    (a, b) => b - a,
-  );
+    const sortedApplyGPAValues_passed = applyGPAValues_passed.sort(
+      (a, b) => b - a,
+    );
 
-  // 합격자 중앙 GPA
-  const medianGPA_passed =
-    sortedApplyGPAValues_passed[Math.floor(sortedApplyGPAValues.length / 2)];
-  const medianGPANum_passed = passedGPACountMap.get(medianGPA_passed) || 0;
-  const passedMedianGPAData: GPAData = {
-    gpa: medianGPA_passed,
-    num: medianGPANum_passed,
-  };
+    // 합격자 중앙 GPA
+    const medianGPA_passed =
+      sortedApplyGPAValues_passed[Math.floor(sortedApplyGPAValues.length / 2)];
+    const medianGPANum_passed = passedGPACountMap.get(medianGPA_passed)!;
+    passedMedianGPAData = {
+      gpa: medianGPA_passed,
+      num: medianGPANum_passed,
+    };
 
-  // 합격자 최빈 GPA
-  let modeGPA_passed: number = 0;
-  let modeGPANum_passed: number = 0;
+    // 합격자 최빈 GPA
+    let modeGPA_passed: number = 0;
+    let modeGPANum_passed: number = 0;
 
-  passedGPACountMap.forEach((count, gpa) => {
-    if (count > modeGPANum_passed) {
-      modeGPA_passed = gpa;
-      modeGPANum_passed = count;
-    }
-  });
+    passedGPACountMap.forEach((count, gpa) => {
+      if (count > modeGPANum_passed) {
+        modeGPA_passed = gpa;
+        modeGPANum_passed = count;
+      }
+    });
 
-  const passedModeGPAData: GPAData = {
-    gpa: modeGPA_passed,
-    num: modeGPANum_passed,
-  };
+    passedModeGPAData = {
+      gpa: modeGPA_passed,
+      num: modeGPANum_passed,
+    };
 
-  const passedGPACountArray = Array.from(passedGPACountMap.entries()).map(
-    ([gpa, num]) => ({
-      gpa,
-      num,
-    }),
-  );
+    passedGPACountArray = Array.from(passedGPACountMap.entries()).map(
+      ([gpa, num]) => ({
+        gpa,
+        num,
+      }),
+    );
+  }
 
   //return할 객체 배열에 담을 데이터를 정의한다.
   const majorReturnData = {

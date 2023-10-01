@@ -1,11 +1,32 @@
 import { Types } from 'mongoose';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import Application from '../models/applicationModel';
 import Email from '../models/emailModel';
 import * as jwt from '../utils/jwt';
 import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
-export const join = async (userData: IUser) => {
+type userDataType = {
+  password: string;
+  studentId: number;
+  phoneNumber: string;
+  email: string;
+  firstMajor: string;
+  nickname: string;
+  role: string;
+  refreshToken: string;
+  certificate: string;
+  secondMajor: string;
+  passSemester: string;
+  passDescription: string;
+  passGPA: number;
+  wannaSell: boolean;
+  hopeMajors: Array<string> | null;
+  hopeSemester: string;
+  curGPA: number;
+};
+
+export const join = async (userData: userDataType) => {
   // 인증된 email인지 확인
   const email = await Email.findOne({ email: userData.email });
   if (!email || !email.certificate) {
@@ -19,8 +40,9 @@ export const join = async (userData: IUser) => {
   })) as IMajor;
 
   let newUser;
+  let secondMajorId;
 
-  if (!secondMajorName) {
+  if (userData.role === 'candidate') {
     // candidate
     newUser = new User({
       password: userData.password,
@@ -40,6 +62,7 @@ export const join = async (userData: IUser) => {
       name: secondMajorName,
     })) as IMajor;
 
+    secondMajorId = secondMajor._id;
     newUser = new User({
       password: userData.password,
       studentId: userData.studentId,
@@ -58,6 +81,19 @@ export const join = async (userData: IUser) => {
   // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
   // email.certificate = true;
   // await email.save();
+
+  // 합격자면 그 정보 application에 바로 저장.
+  if (userData.role === 'passer') {
+    const passer = await User.findOne({ studentId: userData.studentId });
+
+    await Application.create({
+      candidateId: passer!._id,
+      pnp: 'PASS',
+      applyMajor1: secondMajorId,
+      applySemester: userData.passSemester,
+      applyGPA: userData.passGPA,
+    });
+  }
 
   return newUser;
 };
