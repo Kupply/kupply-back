@@ -8,16 +8,10 @@ const reportSchema = new Schema({
     ref: 'User',
     required: [true, 'Report must have a reporter'],
   },
-  suspect: {
+  suspectPost: {
     type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: [true, 'Report must have a suspect'],
-  },
-  createdAt: {
-    type: Date,
-    default: function () {
-      return Date.now();
-    },
+    ref: 'Post',
+    required: [true, 'Report must have a suspect post'],
   },
 });
 

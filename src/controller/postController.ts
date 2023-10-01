@@ -57,3 +57,22 @@ export const deletePost = async (
     next(err);
   }
 };
+
+export const reportPost = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId as mongoose.Types.ObjectId;
+    const { postId } = req.body;
+    await postService.reportPost(userId, postId);
+
+    res.status(200).json({
+      status: 'success',
+      message: '글이 성공적으로 신고 완료되었습니다.',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
