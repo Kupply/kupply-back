@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 
 const Schema = mongoose.Schema;
 
 export interface IMajor {
-  _id: string;
+  _id: Types.ObjectId;
   name: string;
   recruiting: number;
 }
