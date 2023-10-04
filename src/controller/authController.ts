@@ -33,12 +33,12 @@ export const login = async (
     );
 
     res.cookie('accessToken', accessToken, {
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
       httpOnly: true,
     });
     if (isRememberOn) {
       res.cookie('refreshToken', refreshToken, {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
         httpOnly: true,
       });
     }
@@ -160,26 +160,6 @@ export const forgotPassword = async (
     res.status(200).json({
       status: 'success',
       message: `${userEmail}로 임시 비밀번호를 보냈습니다.`,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
-
-export const resetPassword = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const userId = req.userId as Types.ObjectId;
-    const { oldPassword, newPassword } = req.body;
-
-    await authService.resetPassword(userId, oldPassword, newPassword);
-
-    res.status(200).json({
-      status: 'success',
-      message: '비밀번호가 성공적으로 변경되었습니다.',
     });
   } catch (err) {
     next(err);
