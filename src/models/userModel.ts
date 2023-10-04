@@ -21,7 +21,8 @@ export interface IUser extends Document {
   passGPA: number;
   wannaSell: boolean;
   // 지원자만
-  hopeMajors: Array<string> | null;
+  hopeMajor1: Types.ObjectId;
+  hopeMajor2: Types.ObjectId;
   hopeSemester: string;
   curGPA: number;
 }
@@ -32,7 +33,8 @@ const userSchema = new Schema<IUser>(
     password: {
       type: String,
       required: [true, 'User must have a password.'],
-      minLength: 10,
+      minLength: 8,
+      maxLength: 20,
       select: false,
     },
     studentId: {
@@ -107,9 +109,13 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
     },
     // info of candidate only
-    hopeMajors: {
-      type: [String],
-      validate: [arrayLimit, 'You can only have 2 hopes'],
+    hopeMajor1: {
+      type: Schema.Types.ObjectId,
+      ref: 'Major',
+    },
+    hopeMajor2: {
+      type: Schema.Types.ObjectId,
+      ref: 'Major',
     },
     hopeSemester: {
       type: String,
