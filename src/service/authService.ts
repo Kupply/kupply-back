@@ -8,6 +8,7 @@ import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
 type userDataType = {
   password: string;
+  name: string;
   studentId: number;
   phoneNumber: string;
   email: string;
@@ -61,6 +62,7 @@ export const join = async (userData: userDataType) => {
 
     newUser = new User({
       password: userData.password,
+      name: userData.name,
       studentId: userData.studentId,
       email: userData.email,
       phoneNumber: userData.phoneNumber,
@@ -88,9 +90,10 @@ export const join = async (userData: userDataType) => {
     secondMajorId = secondMajor._id;
     newUser = new User({
       password: userData.password,
+      name: userData.name,
       studentId: userData.studentId,
-      phoneNumber: userData.phoneNumber,
       email: userData.email,
+      phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,

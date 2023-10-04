@@ -5,6 +5,7 @@ export interface IUser extends Document {
   // 공통
   _id: Types.ObjectId;
   password: string;
+  name: string;
   studentId: number;
   phoneNumber: string;
   email: string;
@@ -36,6 +37,10 @@ const userSchema = new Schema<IUser>(
       minLength: 8,
       maxLength: 20,
       select: false,
+    },
+    name: {
+      type: String,
+      required: [true, 'User must have a name.'],
     },
     studentId: {
       type: Number,
