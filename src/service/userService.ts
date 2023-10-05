@@ -130,6 +130,7 @@ export const updateMe = async (
     }
   }
   if (updateData.newCurGPA) {
+    // TODO: 지원 시즌에만 횟수 제한을 어떻게 구현해야 할까..?
   }
 
   const updatedUser = await user.save();
