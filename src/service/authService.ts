@@ -8,6 +8,7 @@ import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
 type userDataType = {
   password: string;
+  name: string;
   studentId: number;
   phoneNumber: string;
   email: string;
@@ -15,13 +16,13 @@ type userDataType = {
   nickname: string;
   role: string;
   refreshToken: string;
-  certificate: string;
   secondMajor: string;
   passSemester: string;
   passDescription: string;
   passGPA: number;
   wannaSell: boolean;
-  hopeMajors: Array<string> | null;
+  hopeMajor1: string;
+  hopeMajor2: string;
   hopeSemester: string;
   curGPA: number;
 };
@@ -33,41 +34,66 @@ export const join = async (userData: userDataType) => {
     throw { status: 401, message: '이메일 인증을 먼저 완료해주세요.' };
   }
 
-  const firstMajorName = userData.firstMajor;
-  const secondMajorName = userData.secondMajor;
-  const firstMajor = (await Major.findOne({
-    name: firstMajorName,
-  })) as IMajor;
+  const firstMajor = await Major.findOne({
+    name: userData.firstMajor,
+  });
+
+  if (!firstMajor) {
+    throw {
+      status: 404,
+      message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
+    };
+  }
 
   let newUser;
   let secondMajorId;
 
   if (userData.role === 'candidate') {
     // candidate
+    const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+    const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+
+    if (!hopeMajor1 || !hopeMajor2) {
+      throw {
+        status: 404,
+        message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
+
     newUser = new User({
       password: userData.password,
+      name: userData.name,
       studentId: userData.studentId,
       email: userData.email,
       phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
-      hopeMajors: userData.hopeMajors,
+      hopeMajor1: hopeMajor1,
+      hopeMajor2: hopeMajor2,
       hopeSemester: userData.hopeSemester,
       curGPA: userData.curGPA,
     });
   } else {
     // passer
-    const secondMajor = (await Major.findOne({
-      name: secondMajorName,
-    })) as IMajor;
+    const secondMajor = await Major.findOne({
+      name: userData.secondMajor,
+    });
+
+    if (!secondMajor) {
+      throw {
+        status: 404,
+        message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
 
     secondMajorId = secondMajor._id;
     newUser = new User({
       password: userData.password,
+      name: userData.name,
       studentId: userData.studentId,
-      phoneNumber: userData.phoneNumber,
       email: userData.email,
+      phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
@@ -250,7 +276,7 @@ const generateRandomPassword = () => {
 
   let password = '';
 
-  const passwordLength = 8 + Math.floor(Math.random() * 13);
+  const passwordLength = 8 + Math.floor(Math.random() * 12);
   while (password.length < passwordLength) {
     const randomIndex = Math.floor(Math.random() * allowedChars.length);
     password += allowedChars[randomIndex];
@@ -284,25 +310,6 @@ export const forgotPassword = async (userEmail: string) => {
     await user.save();
     throw { status: 500, message: '재시도해주세요.' };
   }
-};
 
-export const resetPassword = async (
-  userId: Types.ObjectId,
-  oldPassword: string,
-  newPassword: string,
-) => {
-  const user = await User.findOne({ id: userId }).select('+password');
-
-  if (!user) {
-    throw {
-      status: 400,
-      message:
-        '로그인한 유저만 비밀번호를 변경할 수 있으므로, 실행되는 일 없을 것임',
-    };
-  } else if (!(await user.checkPassword(oldPassword))) {
-    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
-  }
-
-  user.password = newPassword;
-  await user.save();
+  return;
 };
