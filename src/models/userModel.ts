@@ -26,6 +26,7 @@ export interface IUser extends Document {
   hopeMajor2: Types.ObjectId;
   hopeSemester: string;
   curGPA: number;
+  changeGPA: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -132,6 +133,10 @@ const userSchema = new Schema<IUser>(
       type: Number,
       min: 0,
       max: 4.5,
+    },
+    changeGPA: {
+      type: Number,
+      max: 2,
     },
   },
   {

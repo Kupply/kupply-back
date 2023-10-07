@@ -111,7 +111,7 @@ export const updateMe = async (
       user.firstMajor = major._id;
     }
   }
-  if (updateData.newHopeMajor1) {
+  if (updateData.newHopeMajor1 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor1 });
 
     if (!major) {
@@ -120,7 +120,7 @@ export const updateMe = async (
       user.hopeMajor1 = major._id;
     }
   }
-  if (updateData.newHopeMajor2) {
+  if (updateData.newHopeMajor2 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor2 });
 
     if (!major) {
@@ -129,8 +129,18 @@ export const updateMe = async (
       user.hopeMajor2 = major._id;
     }
   }
-  if (updateData.newCurGPA) {
-    // TODO: 지원 시즌에만 횟수 제한을 어떻게 구현해야 할까..?
+  if (updateData.newCurGPA && user.role === 'candidate') {
+    // FIXME: 이중전공 지원기간 아니면 if문 주석처리, 지원기간 끝나면 모든 candidate 유저의 changeGPA 0으로 reset.
+    // => 더 좋은 방법이 있을 것 같은데...
+    if (user.changeGPA >= 2) {
+      throw {
+        status: 401,
+        message:
+          '이중전공 지원 기간에는 학점을 최대 두 번까지만 변경 가능합니다.',
+      };
+    }
+    user.changeGPA++;
+    user.curGPA = updateData.newCurGPA;
   }
 
   const updatedUser = await user.save();
