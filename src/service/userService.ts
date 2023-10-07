@@ -3,13 +3,16 @@ import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 
 export type updateDataType = {
-  newNickname: string;
+  newName: string;
   newStudentId: number;
   newFirstMajor: string;
+  newPhoneNumber: string;
+  newProfilePic: string;
+  newNickname: string;
   newHopeMajor1: string;
   newHopeMajor2: string;
-  newHopeSemester: string;
   newCurGPA: number;
+  newHopeSemester: string;
 };
 
 export const getAllUsers = async () => {
@@ -86,15 +89,11 @@ export const updateMe = async (
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
 
-  if (updateData.newNickname) {
-    const tmpUser = await User.findOne({ nickname: updateData.newNickname });
-    if (tmpUser) {
-      throw { status: 401, message: '이미 사용중인 닉네임입니다.' };
-    } else {
-      user.nickname = updateData.newNickname;
-    }
+  if (updateData.newName) {
+    user.name = updateData.newName;
   }
-  if (updateData.newStudentId) {
+
+  if (updateData.newStudentId && updateData.newStudentId !== user.studentId) {
     const tmpUser = await User.findOne({ studentId: updateData.newStudentId });
     if (tmpUser) {
       throw { status: 401, message: '이미 사용중인 학번입니다.' };
@@ -102,6 +101,7 @@ export const updateMe = async (
       user.studentId = updateData.newStudentId;
     }
   }
+
   if (updateData.newFirstMajor) {
     const major = await Major.findOne({ name: updateData.newFirstMajor });
 
@@ -111,6 +111,35 @@ export const updateMe = async (
       user.firstMajor = major._id;
     }
   }
+
+  if (
+    updateData.newPhoneNumber &&
+    updateData.newPhoneNumber !== user.phoneNumber
+  ) {
+    const tmpUser = await User.findOne({
+      phoneNumber: updateData.newPhoneNumber,
+    });
+
+    if (tmpUser) {
+      throw { status: 401, message: '이미 사용중인 전화번호입니다.' };
+    } else {
+      user.phoneNumber = updateData.newPhoneNumber;
+    }
+  }
+
+  if (updateData.newProfilePic) {
+    user.profilePic = updateData.newProfilePic;
+  }
+
+  if (updateData.newNickname && updateData.newNickname !== user.nickname) {
+    const tmpUser = await User.findOne({ nickname: updateData.newNickname });
+    if (tmpUser) {
+      throw { status: 401, message: '이미 사용중인 닉네임입니다.' };
+    } else {
+      user.nickname = updateData.newNickname;
+    }
+  }
+
   if (updateData.newHopeMajor1 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor1 });
 
@@ -120,6 +149,7 @@ export const updateMe = async (
       user.hopeMajor1 = major._id;
     }
   }
+
   if (updateData.newHopeMajor2 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor2 });
 
@@ -129,6 +159,7 @@ export const updateMe = async (
       user.hopeMajor2 = major._id;
     }
   }
+
   if (updateData.newCurGPA && user.role === 'candidate') {
     // FIXME: 이중전공 지원기간 아니면 if문 주석처리, 지원기간 끝나면 모든 candidate 유저의 changeGPA 0으로 reset.
     // => 더 좋은 방법이 있을 것 같은데...
@@ -141,6 +172,10 @@ export const updateMe = async (
     }
     user.changeGPA++;
     user.curGPA = updateData.newCurGPA;
+  }
+
+  if (updateData.newHopeSemester && user.role === 'candidate') {
+    user.hopeSemester = updateData.newHopeSemester;
   }
 
   const updatedUser = await user.save();
