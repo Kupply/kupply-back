@@ -14,6 +14,7 @@ export interface IUser extends Document {
   role: string;
   refreshToken: string;
   totalReport: number;
+  profilePic: string;
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -50,7 +51,6 @@ const userSchema = new Schema<IUser>(
     },
     phoneNumber: {
       type: String,
-      required: [true, 'User must have a phone number.'],
       unique: true,
       match: [/^010-\d{4}-\d{4}$/, 'Please fill a valid phone number'],
     },
@@ -91,6 +91,19 @@ const userSchema = new Schema<IUser>(
     totalReport: {
       type: Number,
       default: 0,
+    },
+    profilePic: {
+      type: String,
+      enum: {
+        values: [
+          'rectProfile1',
+          'rectProfile2',
+          'rectProfile3',
+          'rectProfile4',
+          'customProfile',
+        ],
+      },
+      default: 'rectProfile1',
     },
     // info of passer only
     secondMajor: {
