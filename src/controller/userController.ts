@@ -99,3 +99,68 @@ export const resetPassword = async (
     next(err);
   }
 };
+
+export const getProfileFromS3 = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId as Types.ObjectId;
+
+    const imageUrl = await userService.getProfileFromS3(userId);
+
+    res.status(201).json({
+      status: 'success',
+      imageUrl,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadProfileToS3 = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.file) {
+      throw { status: 400, message: 'File not found' };
+    }
+
+    const userId = req.userId as Types.ObjectId;
+    const fileData: Express.Multer.File = req.file;
+
+    const imageUrl = await userService.uploadProfileToS3(userId, fileData);
+
+    res.status(201).json({
+      status: 'success',
+      imageUrl,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const uploadResumeToS3 = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    if (!req.file) {
+      throw { status: 400, message: 'File not found' };
+    }
+
+    const fileData: Express.Multer.File = req.file;
+
+    await userService.uploadResumeToS3(fileData);
+
+    res.status(201).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};

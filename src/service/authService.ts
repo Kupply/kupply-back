@@ -9,7 +9,7 @@ import { sendAuthEmail, sendTempPassword } from '../utils/email';
 type userDataType = {
   password: string;
   name: string;
-  studentId: number;
+  studentId: string;
   phoneNumber: string;
   email: string;
   firstMajor: string;
@@ -73,6 +73,7 @@ export const join = async (userData: userDataType) => {
       hopeMajor2: hopeMajor2,
       hopeSemester: userData.hopeSemester,
       curGPA: userData.curGPA,
+      changeGPA: 0,
     });
   } else {
     // passer

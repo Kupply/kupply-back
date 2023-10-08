@@ -6,7 +6,7 @@ export interface IUser extends Document {
   _id: Types.ObjectId;
   password: string;
   name: string;
-  studentId: number;
+  studentId: string;
   phoneNumber: string;
   email: string;
   firstMajor: Types.ObjectId;
@@ -14,6 +14,8 @@ export interface IUser extends Document {
   role: string;
   refreshToken: string;
   totalReport: number;
+  profilePic: string;
+  profileName: string; // s3에 저장된 이름
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -26,6 +28,7 @@ export interface IUser extends Document {
   hopeMajor2: Types.ObjectId;
   hopeSemester: string;
   curGPA: number;
+  changeGPA: number;
 }
 
 const userSchema = new Schema<IUser>(
@@ -43,13 +46,12 @@ const userSchema = new Schema<IUser>(
       required: [true, 'User must have a name.'],
     },
     studentId: {
-      type: Number,
+      type: String,
       required: [true, 'User must have a student ID.'],
       unique: true,
     },
     phoneNumber: {
       type: String,
-      required: [true, 'User must have a phone number.'],
       unique: true,
       match: [/^010-\d{4}-\d{4}$/, 'Please fill a valid phone number'],
     },
@@ -90,6 +92,22 @@ const userSchema = new Schema<IUser>(
     totalReport: {
       type: Number,
       default: 0,
+    },
+    profilePic: {
+      type: String,
+      enum: {
+        values: [
+          'rectProfile1',
+          'rectProfile2',
+          'rectProfile3',
+          'rectProfile4',
+          'customProfile',
+        ],
+      },
+      default: 'rectProfile1',
+    },
+    profileName: {
+      type: String,
     },
     // info of passer only
     secondMajor: {
@@ -132,6 +150,10 @@ const userSchema = new Schema<IUser>(
       type: Number,
       min: 0,
       max: 4.5,
+    },
+    changeGPA: {
+      type: Number,
+      max: 2,
     },
   },
   {

@@ -1,15 +1,19 @@
 import { Types } from 'mongoose';
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import * as s3 from '../utils/s3';
 
 export type updateDataType = {
-  newNickname: string;
-  newStudentId: number;
+  newName: string;
+  newStudentId: string;
   newFirstMajor: string;
+  newPhoneNumber: string;
+  newProfilePic: string;
+  newNickname: string;
   newHopeMajor1: string;
   newHopeMajor2: string;
-  newHopeSemester: string;
   newCurGPA: number;
+  newHopeSemester: string;
 };
 
 export const getAllUsers = async () => {
@@ -37,6 +41,11 @@ export const getMe = async (userId: Types.ObjectId) => {
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
 
+  let profileLink: string = '';
+  if (user.profilePic === 'customProfile' && user.profileName) {
+    profileLink = await s3.getFileFromS3({ Key: user.profileName });
+  }
+
   if (user.role === 'candidate') {
     const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
       .name;
@@ -46,11 +55,14 @@ export const getMe = async (userId: Types.ObjectId) => {
       .name;
 
     return {
+      name: user.name,
+      nickname: user.nickname,
+      profilePic: user.profilePic,
+      profileLink: profileLink,
+      role: user.role,
+      firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
-      firstMajor: firstMajorName,
-      nickname: user.nickname,
-      role: user.role,
       curGPA: user.curGPA,
       hopeSemester: user.hopeSemester,
       hopeMajor1: hopeMajorName1,
@@ -64,11 +76,14 @@ export const getMe = async (userId: Types.ObjectId) => {
       .name;
 
     return {
+      name: user.name,
+      nickname: user.nickname,
+      profilePic: user.profilePic,
+      profileLink: profileLink,
+      role: user.role,
+      firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
-      firstMajor: firstMajorName,
-      nickname: user.nickname,
-      role: user.role,
       secondMajor: secondMajorName,
       passSemester: user.passSemester,
       passGPA: user.passGPA,
@@ -86,15 +101,11 @@ export const updateMe = async (
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
 
-  if (updateData.newNickname) {
-    const tmpUser = await User.findOne({ nickname: updateData.newNickname });
-    if (tmpUser) {
-      throw { status: 401, message: '이미 사용중인 닉네임입니다.' };
-    } else {
-      user.nickname = updateData.newNickname;
-    }
+  if (updateData.newName) {
+    user.name = updateData.newName;
   }
-  if (updateData.newStudentId) {
+
+  if (updateData.newStudentId && updateData.newStudentId !== user.studentId) {
     const tmpUser = await User.findOne({ studentId: updateData.newStudentId });
     if (tmpUser) {
       throw { status: 401, message: '이미 사용중인 학번입니다.' };
@@ -102,6 +113,7 @@ export const updateMe = async (
       user.studentId = updateData.newStudentId;
     }
   }
+
   if (updateData.newFirstMajor) {
     const major = await Major.findOne({ name: updateData.newFirstMajor });
 
@@ -111,7 +123,36 @@ export const updateMe = async (
       user.firstMajor = major._id;
     }
   }
-  if (updateData.newHopeMajor1) {
+
+  if (
+    updateData.newPhoneNumber &&
+    updateData.newPhoneNumber !== user.phoneNumber
+  ) {
+    const tmpUser = await User.findOne({
+      phoneNumber: updateData.newPhoneNumber,
+    });
+
+    if (tmpUser) {
+      throw { status: 401, message: '이미 사용중인 전화번호입니다.' };
+    } else {
+      user.phoneNumber = updateData.newPhoneNumber;
+    }
+  }
+
+  if (updateData.newProfilePic) {
+    user.profilePic = updateData.newProfilePic;
+  }
+
+  if (updateData.newNickname && updateData.newNickname !== user.nickname) {
+    const tmpUser = await User.findOne({ nickname: updateData.newNickname });
+    if (tmpUser) {
+      throw { status: 401, message: '이미 사용중인 닉네임입니다.' };
+    } else {
+      user.nickname = updateData.newNickname;
+    }
+  }
+
+  if (updateData.newHopeMajor1 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor1 });
 
     if (!major) {
@@ -120,7 +161,8 @@ export const updateMe = async (
       user.hopeMajor1 = major._id;
     }
   }
-  if (updateData.newHopeMajor2) {
+
+  if (updateData.newHopeMajor2 && user.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor2 });
 
     if (!major) {
@@ -129,8 +171,23 @@ export const updateMe = async (
       user.hopeMajor2 = major._id;
     }
   }
-  if (updateData.newCurGPA) {
-    // TODO: 지원 시즌에만 횟수 제한을 어떻게 구현해야 할까..?
+
+  if (updateData.newCurGPA && user.role === 'candidate') {
+    // FIXME: 이중전공 지원기간 아니면 if문 주석처리, 지원기간 끝나면 모든 candidate 유저의 changeGPA 0으로 reset.
+    // => 더 좋은 방법이 있을 것 같은데...
+    if (user.changeGPA >= 2) {
+      throw {
+        status: 401,
+        message:
+          '이중전공 지원 기간에는 학점을 최대 두 번까지만 변경 가능합니다.',
+      };
+    }
+    user.changeGPA++;
+    user.curGPA = updateData.newCurGPA;
+  }
+
+  if (updateData.newHopeSemester && user.role === 'candidate') {
+    user.hopeSemester = updateData.newHopeSemester;
   }
 
   const updatedUser = await user.save();
@@ -157,6 +214,71 @@ export const resetPassword = async (
 
   user.password = newPassword;
   await user.save();
+
+  return;
+};
+
+export const getProfileFromS3 = async (userId: Types.ObjectId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { stats: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  if (!user.profileName) {
+    throw {
+      stats: 404,
+      message: '이 사용자는 프로필 이미지가 존재하지 않습니다.',
+    };
+  }
+
+  const imageUrl = await s3.getFileFromS3({ Key: user.profileName });
+
+  return imageUrl;
+};
+
+export const uploadProfileToS3 = async (
+  userId: Types.ObjectId,
+  fileData: Express.Multer.File,
+) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { stats: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  // s3에 저장할 이미지 이름 설정
+  const profileName = `userProfiles/${Date.now()}_${fileData.originalname}`;
+  const uploadObjectParams = {
+    Key: profileName,
+    Body: fileData.buffer,
+    ContentType: fileData.mimetype,
+  };
+
+  await s3.uploadFileToS3(uploadObjectParams);
+
+  // 기존에 업로드 된 것이 있으면 s3에서 삭제
+  if (user.profileName) {
+    await s3.deleteFileFromS3({ Key: user.profileName });
+  }
+  user.profilePic = 'customProfile';
+  user.profileName = profileName;
+  await user.save();
+
+  const imageUrl = await s3.getFileFromS3({ Key: profileName });
+
+  return imageUrl;
+};
+
+export const uploadResumeToS3 = async (fileData: Express.Multer.File) => {
+  const resumeName = `userResume/${Date.now()}_${fileData.originalname}`;
+  const uploadObjectParams = {
+    Key: resumeName,
+    Body: fileData.buffer,
+    ContentType: fileData.mimetype,
+  };
+
+  await s3.uploadFileToS3(uploadObjectParams);
 
   return;
 };
