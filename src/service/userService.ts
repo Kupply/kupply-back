@@ -5,7 +5,7 @@ import * as s3 from '../utils/s3';
 
 export type updateDataType = {
   newName: string;
-  newStudentId: number;
+  newStudentId: string;
   newFirstMajor: string;
   newPhoneNumber: string;
   newProfilePic: string;
@@ -41,6 +41,11 @@ export const getMe = async (userId: Types.ObjectId) => {
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
 
+  let profileLink: string = '';
+  if (user.profilePic === 'customProfile' && user.profileName) {
+    profileLink = await s3.getFileFromS3({ Key: user.profileName });
+  }
+
   if (user.role === 'candidate') {
     const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
       .name;
@@ -50,11 +55,14 @@ export const getMe = async (userId: Types.ObjectId) => {
       .name;
 
     return {
+      name: user.name,
+      nickname: user.nickname,
+      profilePic: user.profilePic,
+      profileLink: profileLink,
+      role: user.role,
+      firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
-      firstMajor: firstMajorName,
-      nickname: user.nickname,
-      role: user.role,
       curGPA: user.curGPA,
       hopeSemester: user.hopeSemester,
       hopeMajor1: hopeMajorName1,
@@ -68,11 +76,14 @@ export const getMe = async (userId: Types.ObjectId) => {
       .name;
 
     return {
+      name: user.name,
+      nickname: user.nickname,
+      profilePic: user.profilePic,
+      profileLink: profileLink,
+      role: user.role,
+      firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
-      firstMajor: firstMajorName,
-      nickname: user.nickname,
-      role: user.role,
       secondMajor: secondMajorName,
       passSemester: user.passSemester,
       passGPA: user.passGPA,
