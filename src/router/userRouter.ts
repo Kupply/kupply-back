@@ -13,5 +13,10 @@ userRouter
   .route('/profile')
   .get(userController.getProfileFromS3)
   .post(upload.single('image'), userController.uploadProfileToS3);
+userRouter.post(
+  '/resume',
+  upload.single('document'),
+  userController.uploadResumeToS3,
+);
 
 export default userRouter;

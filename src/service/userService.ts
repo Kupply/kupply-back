@@ -258,3 +258,16 @@ export const uploadProfileToS3 = async (
 
   return imageUrl;
 };
+
+export const uploadResumeToS3 = async (fileData: Express.Multer.File) => {
+  const resumeName = `userResume/${Date.now()}_${fileData.originalname}`;
+  const uploadObjectParams = {
+    Key: resumeName,
+    Body: fileData.buffer,
+    ContentType: fileData.mimetype,
+  };
+
+  await s3.uploadFileToS3(uploadObjectParams);
+
+  return;
+};
