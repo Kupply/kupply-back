@@ -15,6 +15,7 @@ export interface IUser extends Document {
   refreshToken: string;
   totalReport: number;
   profilePic: string;
+  profileName: string; // s3에 저장된 이름
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -104,6 +105,9 @@ const userSchema = new Schema<IUser>(
         ],
       },
       default: 'rectProfile1',
+    },
+    profileName: {
+      type: String,
     },
     // info of passer only
     secondMajor: {

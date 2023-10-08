@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import * as s3 from '../utils/s3';
 
 export type updateDataType = {
   newName: string;
@@ -204,4 +205,56 @@ export const resetPassword = async (
   await user.save();
 
   return;
+};
+
+export const getProfileFromS3 = async (userId: Types.ObjectId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { stats: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  if (!user.profileName) {
+    throw {
+      stats: 404,
+      message: '이 사용자는 프로필 이미지가 존재하지 않습니다.',
+    };
+  }
+
+  const imageUrl = await s3.getFileFromS3({ Key: user.profileName });
+
+  return imageUrl;
+};
+
+export const uploadProfileToS3 = async (
+  userId: Types.ObjectId,
+  fileData: Express.Multer.File,
+) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { stats: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  // s3에 저장할 이미지 이름 설정
+  const profileName = `userProfiles/${Date.now()}_${fileData.originalname}`;
+  const uploadObjectParams = {
+    Key: profileName,
+    Body: fileData.buffer,
+    ContentType: fileData.mimetype,
+  };
+
+  await s3.uploadFileToS3(uploadObjectParams);
+
+  // 기존에 업로드 된 것이 있으면 s3에서 삭제
+  if (user.profileName) {
+    await s3.deleteFileFromS3({ Key: user.profileName });
+  }
+  user.profilePic = 'customProfile';
+  user.profileName = profileName;
+  await user.save();
+
+  const imageUrl = await s3.getFileFromS3({ Key: profileName });
+
+  return imageUrl;
 };
