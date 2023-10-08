@@ -9,7 +9,7 @@ import { sendAuthEmail, sendTempPassword } from '../utils/email';
 type userDataType = {
   password: string;
   name: string;
-  studentId: number;
+  studentId: string;
   phoneNumber: string;
   email: string;
   firstMajor: string;

@@ -6,7 +6,7 @@ export interface IUser extends Document {
   _id: Types.ObjectId;
   password: string;
   name: string;
-  studentId: number;
+  studentId: string;
   phoneNumber: string;
   email: string;
   firstMajor: Types.ObjectId;
@@ -46,7 +46,7 @@ const userSchema = new Schema<IUser>(
       required: [true, 'User must have a name.'],
     },
     studentId: {
-      type: Number,
+      type: String,
       required: [true, 'User must have a student ID.'],
       unique: true,
     },
