@@ -141,6 +141,9 @@ export const updateMe = async (
   }
 
   if (updateData.newProfilePic) {
+    if (updateData.newProfilePic !== 'customProfile') {
+      user.profileName = '';
+    }
     user.profilePic = updateData.newProfilePic;
   }
 
