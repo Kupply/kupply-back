@@ -373,8 +373,6 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
       applySemester: currentSemester,
     });
 
-    console.log(applications);
-
     if (!applications) continue;
 
     returnDataMap[i].curApplyNum = applications.length;
