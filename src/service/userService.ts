@@ -67,6 +67,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       hopeSemester: user.hopeSemester,
       hopeMajor1: hopeMajorName1,
       hopeMajor2: hopeMajorName2,
+      isApplied: user.isApplied,
     };
   } else {
     // 합격자 자기정보 필요한 경우 있나..?

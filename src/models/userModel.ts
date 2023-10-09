@@ -29,6 +29,7 @@ export interface IUser extends Document {
   hopeSemester: string;
   curGPA: number;
   changeGPA: number;
+  isApplied: boolean;
 }
 
 const userSchema = new Schema<IUser>(
@@ -154,6 +155,9 @@ const userSchema = new Schema<IUser>(
     changeGPA: {
       type: Number,
       max: 2,
+    },
+    isApplied: {
+      type: Boolean,
     },
   },
   {
