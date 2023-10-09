@@ -22,6 +22,15 @@ export const createApplicationData = async (
 ) => {
   try {
     //유효성 검사를 위해 지원 데이터가 존재하는 유저의 것인지, 중복되는지 확인한다.
+    const user = await User.findById(candidateId);
+    if (!user) {
+      throw new Error('존재하지 않는 사용자입니다.');
+    }
+
+    if (user.role === 'passer') {
+      throw new Error('합격자는 모의지원 서비스를 이용할 수 없습니다.');
+    }
+
     const isAlreadyExist = (
       await Application.find({
         candidateId: candidateId,
@@ -49,6 +58,10 @@ export const createApplicationData = async (
 
       const newApplication = new Application(applyData);
       await newApplication.save(); //DB에 application 데이터를 저장한다.
+
+      user.isApplied = true;
+      await user.save();
+
       return newApplication;
     }
   } catch (error) {
