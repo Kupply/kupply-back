@@ -67,6 +67,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       hopeSemester: user.hopeSemester,
       hopeMajor1: hopeMajorName1,
       hopeMajor2: hopeMajorName2,
+      isApplied: user.isApplied,
     };
   } else {
     // 합격자 자기정보 필요한 경우 있나..?
@@ -270,8 +271,21 @@ export const uploadProfileToS3 = async (
   return imageUrl;
 };
 
-export const uploadResumeToS3 = async (fileData: Express.Multer.File) => {
-  const resumeName = `userResume/${Date.now()}_${fileData.originalname}`;
+export const uploadResumeToS3 = async (
+  userId: Types.ObjectId,
+  fileData: Express.Multer.File,
+) => {
+  const user = await User.findById(userId);
+  if (!user) {
+    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  const hopeMajor1 = (await Major.findById(user.hopeMajor1)) as IMajor;
+
+  const resumeName = `userResume/${hopeMajor1.name}/${Date.now()}_${
+    fileData.originalname
+  }`;
+
   const uploadObjectParams = {
     Key: resumeName,
     Body: fileData.buffer,

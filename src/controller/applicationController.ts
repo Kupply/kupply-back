@@ -86,3 +86,23 @@ export const updateApplicationData = async (
     next(err);
   }
 };
+
+export const hopeMajorsCurrentInfo = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId as Types.ObjectId;
+
+    const hopeMajorsCurrentInfo =
+      await applicationService.hopeMajorsCurrentInfo(userId);
+
+    res.status(200).send({
+      status: 'success',
+      data: hopeMajorsCurrentInfo,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

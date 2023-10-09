@@ -74,6 +74,7 @@ export const join = async (userData: userDataType) => {
       hopeSemester: userData.hopeSemester,
       curGPA: userData.curGPA,
       changeGPA: 0,
+      isApplied: false,
     });
   } else {
     // passer
