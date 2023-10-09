@@ -44,17 +44,11 @@ export const createApplicationData = async (
       applyData.candidateId = candidateId;
       applyData.applySemester = currentSemester;
 
-      const applyMajor1 = (await Major.findOne({
-        name: applyData.applyMajor1,
-      })) as IMajor;
+      const applyMajor1 = (await Major.findById(user.hopeMajor1)) as IMajor;
       applyData.applyMajor1 = applyMajor1._id;
 
-      if (applyData.applyMajor2) {
-        const applyMajor2 = (await Major.findOne({
-          name: applyData.applyMajor2,
-        })) as IMajor;
-        applyData.applyMajor2 = applyMajor2._id;
-      }
+      const applyMajor2 = (await Major.findById(user.hopeMajor2)) as IMajor;
+      applyData.applyMajor2 = applyMajor2._id;
 
       const newApplication = new Application(applyData);
       await newApplication.save(); //DB에 application 데이터를 저장한다.
@@ -378,6 +372,8 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
       applyMajor1: majorId,
       applySemester: currentSemester,
     });
+
+    console.log(applications);
 
     if (!applications) continue;
 
