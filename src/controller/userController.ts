@@ -153,9 +153,10 @@ export const uploadResumeToS3 = async (
       throw { status: 400, message: 'File not found' };
     }
 
+    const userId = req.userId as Types.ObjectId;
     const fileData: Express.Multer.File = req.file;
 
-    await userService.uploadResumeToS3(fileData);
+    await userService.uploadResumeToS3(userId, fileData);
 
     res.status(201).json({
       status: 'success',
