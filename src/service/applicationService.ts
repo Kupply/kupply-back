@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import ApplyMetaData from '../models/applicationMetaDataModel'
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -15,6 +16,7 @@ type applyDataType = {
 };
 
 const currentSemester: string = '2024-1';
+const pastSemester: string = '2023-1';
 
 export const createApplicationData = async (
   candidateId: Types.ObjectId,
@@ -472,3 +474,47 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 
   return returnData;
 };
+
+//landingPage의 표와 카드에 쓰이는 정보를 가져온다.
+export const getLandingPageData = async () => {
+  try {
+    //이번 학기의 모든 metadata를 가져온다.
+    let currentMetadata = await ApplyMetaData.find({semester : currentSemester});
+
+    let majorData = [];
+    //각 전공에 해당하는 metadata의 정보를 취합한다.
+    for (let i = 0; i< currentMetadata.length; i++) {
+      const metadata = currentMetadata[i];
+      const majordata = await Major.findById(metadata.major);
+      const pastmetadata = await ApplyMetaData.findOne({major : metadata.major, semester: pastSemester});
+
+      //데이터가 없을 경우 에러 처리
+      if(!majordata) throw Error("major not found");
+      if(!metadata) throw Error("metadata not found");
+      if(!pastmetadata) throw Error("past metadata not found");
+      if(!metadata.appliedNumber || !pastmetadata.appliedNumber || !pastmetadata.passedGPAavg || !pastmetadata.passedGPAmin) throw Error("empty past metadata");
+      
+      const returndata = {
+        name: majordata.name,
+        engName: majordata.engName,
+        recruitNumber: metadata.recruitNumber,
+        applyNumber: metadata.appliedNumber,
+        competition: Number((metadata.appliedNumber / metadata.recruitNumber).toFixed(2)),
+        pastCompetition: Number((pastmetadata.appliedNumber / pastmetadata.recruitNumber).toFixed(2)),
+        pastPassedGPAavg: pastmetadata.passedGPAavg,
+        pastPassedGPAmin: pastmetadata.passedGPAmin,
+        interest: majordata.interest
+      }
+
+      majorData.push(returndata);
+    }
+
+    //내림차순 정렬
+    majorData.sort((a, b) => b.competition - a.competition);
+
+    return majorData;
+  }
+  catch (e) {
+    throw e;
+  }
+}
