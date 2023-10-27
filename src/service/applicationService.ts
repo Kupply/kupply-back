@@ -14,7 +14,190 @@ type applyDataType = {
   applyDescription: string;
 };
 
+const prevSem = '2023-2';
+
 const currentSemester: string = '2024-1';
+type cardData = {
+  name: string;
+  applyNum: number;
+  avg: number;
+  min: number;
+};
+export const getCardDatas = async () => {
+  const result: cardData[] = [];
+  const business = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '경영학과',
+  });
+  let busAvg = 0,
+    busMin = 4.5;
+  business.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      busAvg += item.applyGPA;
+      busMin = Math.min(busMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '경영대학',
+    applyNum: business.length,
+    avg: busAvg,
+    min: busMin,
+  });
+
+  const computer = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '컴퓨터학과',
+  });
+  let compAvg = 0,
+    compMin = 4.5;
+  computer.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      compAvg += item.applyGPA;
+      compMin = Math.min(compMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정보대학 컴퓨터학과',
+    applyNum: computer.length,
+    avg: compAvg,
+    min: compMin,
+  });
+
+  const psycho = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '심리학부',
+  });
+  let psychoAvg = 0,
+    psychoMin = 4.5;
+  psycho.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      psychoAvg += item.applyGPA;
+      psychoMin = Math.min(psychoMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '심리학부',
+    applyNum: psycho.length,
+    avg: psychoAvg,
+    min: psychoMin,
+  });
+
+  const economy = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '경제학과',
+  });
+  let economyAvg = 0,
+    economyMin = 4.5;
+  economy.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      economyAvg += item.applyGPA;
+      economyMin = Math.min(economyMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정경대학 경제학과',
+    applyNum: economy.length,
+    avg: economyAvg,
+    min: economyMin,
+  });
+
+  const stats = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '통계학과',
+  });
+  let statsAvg = 0,
+    statsMin = 4.5;
+  stats.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      statsAvg += item.applyGPA;
+      statsMin = Math.min(statsMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정경대학 통계학과',
+    applyNum: stats.length,
+    avg: statsAvg,
+    min: statsMin,
+  });
+
+  const media = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '미디어학부',
+  });
+  let mediaAvg = 0,
+    mediaMin = 4.5;
+  media.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      mediaAvg += item.applyGPA;
+      mediaMin = Math.min(mediaMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '미디어학부',
+    applyNum: media.length,
+    avg: mediaAvg,
+    min: mediaMin,
+  });
+
+  const sigjakyung = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '식품자원경제학과',
+  });
+  let sigjakyungAvg = 0,
+    sigjakyungMin = 4.5;
+  sigjakyung.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      sigjakyungAvg += item.applyGPA;
+      sigjakyungMin = Math.min(sigjakyungMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '생명과학대학 식품자원경제학과',
+    applyNum: sigjakyung.length,
+    avg: sigjakyungAvg,
+    min: sigjakyungMin,
+  });
+
+  const mathematics = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '수학과',
+  });
+  let mathematicsAvg = 0,
+    mathematicsMin = 4.5;
+  mathematics.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      mathematicsAvg += item.applyGPA;
+      mathematicsMin = Math.min(mathematicsMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '이과대학 수학과',
+    applyNum: mathematics.length,
+    avg: mathematicsAvg,
+    min: mathematicsMin,
+  });
+
+  const chemistry = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: '화학과',
+  });
+  let chemistryAvg = 0,
+    chemistryMin = 4.5;
+  chemistry.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      chemistryAvg += item.applyGPA;
+      chemistryMin = Math.min(chemistryMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '이과대학 화학과',
+    applyNum: chemistry.length,
+    avg: chemistryAvg,
+    min: chemistryMin,
+  });
+
+  return result;
+};
 
 export const createApplicationData = async (
   candidateId: Types.ObjectId,
