@@ -31,6 +31,20 @@ export const deleteUser = async (userId: string) => {
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
 
+  if(user.role === 'candidate'){
+    const deleteMajor1 = await Major.findById(user.hopeMajor1);
+    const deleteMajor2 = await Major.findById(user.hopeMajor2);
+
+    if(deleteMajor1 && deleteMajor1.interest !== undefined){
+      (deleteMajor1.interest as number)--;
+      await deleteMajor1.save();
+    }
+    if(deleteMajor2 && deleteMajor2.interest !== undefined){
+      (deleteMajor2.interest as number)--;
+      await deleteMajor2.save();
+    }
+  }
+
   return;
 };
 
@@ -101,6 +115,9 @@ export const updateMe = async (
   if (!user) {
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
+
+  const deleteMajor1 = user.hopeMajor1;
+  const deleteMajor2 = user.hopeMajor2;
 
   if (updateData.newName) {
     user.name = updateData.newName;
@@ -196,6 +213,41 @@ export const updateMe = async (
 
   const updatedUser = await user.save();
 
+  if (updateData.newHopeMajor1 && updatedUser.role === 'candidate') {
+    const major = await Major.findOne({ name: updateData.newHopeMajor1 });
+
+    if(major && major.interest !== undefined){
+      (major.interest as number)++;
+      console.log(major.name);
+      await major.save();
+    }
+
+    const deleteMajor = await Major.findById(deleteMajor1);
+    
+    if(deleteMajor && deleteMajor.interest !== undefined){
+      (deleteMajor.interest as number)--;
+      console.log(deleteMajor.name);
+      await deleteMajor.save();
+    }
+  }
+
+  if (updateData.newHopeMajor2 && updatedUser.role === 'candidate') {
+    const major = await Major.findOne({ name: updateData.newHopeMajor2 });
+
+    if(major && major.interest !== undefined){
+      (major.interest as number)++;
+      console.log(major.name);
+      await major.save();
+    }
+
+    const deleteMajor = await Major.findById(deleteMajor2);
+
+    if(deleteMajor && deleteMajor.interest !== undefined){
+      (deleteMajor.interest as number)--;
+      console.log(deleteMajor.name);
+      await deleteMajor.save();
+    }
+  }
   return updatedUser;
 };
 

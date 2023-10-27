@@ -16,7 +16,6 @@ const majorSchema = new Schema<IMajor>({
   },
   engName: {
     type: String,
-    required: true,
   },
   interest: {
     type: Number,
