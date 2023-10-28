@@ -14,7 +14,7 @@ type applyDataType = {
   applyDescription: string;
 };
 
-const currentSemester: string = '2024-1';
+const currentSemester: string = '2023-2';
 
 export const createApplicationData = async (
   candidateId: Types.ObjectId,
