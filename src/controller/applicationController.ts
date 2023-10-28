@@ -27,6 +27,19 @@ export const createApplicationData = async (
   }
 };
 
+export const getCardData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await applicationService.getCardDatas();
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const getApplicationData = async (
   req: Request,
   res: Response,
