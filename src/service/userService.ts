@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import Application from '../models/applicationModel';
 import * as s3 from '../utils/s3';
 
 export type updateDataType = {
@@ -24,12 +25,17 @@ export const getAllUsers = async () => {
   return users;
 };
 
-export const deleteUser = async (userId: string) => {
-  const user = await User.findByIdAndDelete(userId);
+export const deleteMe = async (userId: Types.ObjectId) => {
+  const user = await User.findById(userId);
 
   if (!user) {
     throw { status: 404, message: '존재하지 않는 사용자입니다.' };
   }
+
+  // FIXME: 커뮤니티 기능이 없으니 지금은 모의지원 데이터만 삭제
+  await Application.findOneAndDelete({ candidateId: userId });
+
+  await User.findByIdAndDelete(userId);
 
   return;
 };
