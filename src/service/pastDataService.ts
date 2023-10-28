@@ -144,7 +144,7 @@ type MajorOptions =
   | 'computer';
 
 const majorNameMapping = {
-  business: '경영대학',
+  business: '경영학과',
   economics: '경제학과',
   psychology: '심리학부',
   statistics: '통계학과',
