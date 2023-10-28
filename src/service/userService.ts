@@ -141,6 +141,12 @@ export const updateMe = async (
   }
 
   if (updateData.newProfilePic) {
+    // 전에 올린 customProfile에서 default1~4로 바꾸는 경우에
+    // 전에 올린 것 s3에서 제거
+    if (user.profileName) {
+      await s3.deleteFileFromS3({ Key: user.profileName });
+    }
+
     if (updateData.newProfilePic !== 'customProfile') {
       user.profileName = '';
     }
