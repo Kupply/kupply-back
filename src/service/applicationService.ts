@@ -12,6 +12,7 @@ type applyDataType = {
   applyTimes: string;
   applyGPA: string;
   applyDescription: string;
+  applyGrade: string;
 };
 
 const currentSemester: string = '2023-2';
