@@ -5,9 +5,9 @@ import { upload } from '../utils/s3';
 const userRouter = express.Router();
 
 userRouter.get('/', userController.getAllUsers);
-userRouter.delete('/:id', userController.deleteUser);
 userRouter.get('/getMe', userController.getMe);
 userRouter.post('/updateMe', userController.updateMe);
+userRouter.delete('/deleteMe', userController.deleteMe);
 userRouter.post('/resetPassword', userController.resetPassword);
 userRouter
   .route('/profile')
