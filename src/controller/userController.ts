@@ -21,14 +21,14 @@ export const getAllUsers = async (
   }
 };
 
-export const deleteUser = async (
+export const deleteMe = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const userId = req.params.id;
-    await userService.deleteUser(userId);
+    const userId = req.userId as Types.ObjectId;
+    await userService.deleteMe(userId);
 
     res.status(204).json({
       status: 'success',

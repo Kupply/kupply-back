@@ -3,6 +3,7 @@ import * as applicationController from '../controller/applicationController';
 
 const router = express.Router();
 
+router.get('/cards', applicationController.getCardData);
 router.post('/', applicationController.createApplicationData);
 router.get('/', applicationController.getApplicationData);
 router.delete('/', applicationController.deleteApplicationData);
