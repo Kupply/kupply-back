@@ -1,7 +1,8 @@
-import { Types } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import ApplyMetaData from '../models/applicationMetaDataModel'
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -13,6 +14,10 @@ type applyDataType = {
   applyGPA: string;
   applyDescription: string;
 };
+
+type landingPageInputType = {
+  userId: Types.ObjectId | null;
+}
 
 const currentSemester: string = '2023-2';
 const prevSem = '2023-1';
@@ -236,6 +241,19 @@ export const createApplicationData = async (
       const newApplication = new Application(applyData);
       await newApplication.save(); //DB에 application 데이터를 저장한다.
 
+      //Metadata의 appliedNumber를 증가시킨다.
+      const updateMetaData1 = await ApplyMetaData.findOne({semester: currentSemester, major: applyMajor1._id});
+      const updateMetaData2 = await ApplyMetaData.findOne({semester: currentSemester, major: applyMajor2._id});
+
+      if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+        updateMetaData1.appliedNumber++;
+        await updateMetaData1.save();
+      }
+      if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+        updateMetaData2.appliedNumber++;
+        await updateMetaData2.save();
+      }
+
       user.isApplied = true;
       await user.save();
 
@@ -354,6 +372,19 @@ export const deleteApplicationData = async (userId: Types.ObjectId) => {
       throw { status: 404, message: 'User Application not found' };
     }
 
+    //Metadata의 appliedNumber를 증가시킨다.
+    const updateMetaData1 = await ApplyMetaData.findOne({semester: user.applySemester, major: user.applyMajor1});
+    const updateMetaData2 = await ApplyMetaData.findOne({semester: user.applySemester, major: user.applyMajor2});
+
+    if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+      updateMetaData1.appliedNumber--;
+      await updateMetaData1.save();
+    }
+    if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+      updateMetaData2.appliedNumber--;
+      await updateMetaData2.save();
+    }
+
     return; //삭제 이후 삭제한 user 데이터를 보내 준다.
   } catch (error) {
     throw error;
@@ -366,35 +397,65 @@ export const updateApplicationData = async (
 ) => {
   try {
     const { applySemester } = applyData; //applyData를 받아 온다.
-
+    
     if (applySemester && applySemester !== currentSemester) {
       throw new Error('현재 학기가 아닌 지원 정보는 추가할 수 없습니다.');
-    } else {
-      if (applyData.applyMajor1) {
-        const applyMajor1 = (await Major.findOne({
-          name: applyData.applyMajor1,
-        })) as IMajor;
-        applyData.applyMajor1 = applyMajor1._id;
-      }
-
-      if (applyData.applyMajor2) {
-        const applyMajor2 = (await Major.findOne({
-          name: applyData.applyMajor2,
-        })) as IMajor;
-        applyData.applyMajor2 = applyMajor2._id;
-      }
-
-      const updatedAppplicationData = await Application.findOneAndUpdate(
-        { candidateId, applySemester: currentSemester },
-        applyData,
-        {
-          new: true,
-          runValidators: true,
-        },
-      );
-
-      return updatedAppplicationData;
     }
+
+    let updateApplicationData = await Application.findOne({candidateId: candidateId, applySemester: currentSemester});
+
+    if(!updateApplicationData)
+      throw new Error('해당 Application 정보가 없습니다.');
+
+    const pastMajor1 = updateApplicationData.applyMajor1;
+    const pastMajor2 = updateApplicationData.applyMajor2;
+
+    if (applyData.applyMajor1) {
+      const applyMajor1 = (await Major.findOne({
+        name: applyData.applyMajor1,
+      })) as IMajor;
+      updateApplicationData.applyMajor1 = applyMajor1._id;
+    }
+
+    if (applyData.applyMajor2) {
+      const applyMajor2 = (await Major.findOne({
+        name: applyData.applyMajor2,
+      })) as IMajor;
+      updateApplicationData.applyMajor2 = applyMajor2._id;
+    }
+
+    updateApplicationData.save();
+
+    //metadata의 appliednumber를 갱신한다.
+    const deleteMetadata1 = await ApplyMetaData.findOne({semester: currentSemester, major: pastMajor1._id});
+    const deleteMetadata2 = (pastMajor2 ? await ApplyMetaData.findOne({semester: currentSemester, major: pastMajor2._id}) : undefined);
+
+    if(deleteMetadata1 && deleteMetadata1.appliedNumber !== undefined){
+      deleteMetadata1.appliedNumber--;
+      await deleteMetadata1.save();
+    }
+    if(deleteMetadata2 && deleteMetadata2.appliedNumber !== undefined){
+      deleteMetadata2.appliedNumber--;
+      await deleteMetadata2.save();
+    }
+
+    const updateMetaData1 = await ApplyMetaData.findOne({semester: currentSemester, major: updateApplicationData.applyMajor1._id});
+    const updateMetaData2 = await ApplyMetaData.findOne(
+      updateApplicationData.applyMajor2 ? 
+      ({semester: currentSemester, major: updateApplicationData.applyMajor2._id}) : 
+      undefined);
+
+    if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+      updateMetaData1.appliedNumber++;
+      await updateMetaData1.save();
+    }
+    if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+      updateMetaData2.appliedNumber++;
+      await updateMetaData2.save();
+    }
+
+    return updateApplicationData;
+    
   } catch (error) {
     throw error;
   }
@@ -655,3 +716,67 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 
   return returnData;
 };
+
+//landingPage의 표와 카드에 쓰이는 정보를 가져온다.
+export const getLandingPageData = async (userId: Types.ObjectId | null) => {
+  try {
+    //이번 학기의 모든 metadata를 가져온다.
+    let currentMetadata = await ApplyMetaData.find({semester : currentSemester});
+
+    let majorData = [];
+    //각 전공에 해당하는 metadata의 정보를 취합한다.
+    for (let i = 0; i< currentMetadata.length; i++) {
+      const metadata = currentMetadata[i];
+      const majordata = await Major.findById(metadata.major);
+      const pastmetadata = await ApplyMetaData.findOne({major : metadata.major, semester: prevSem});
+
+      //데이터가 없을 경우 에러 처리
+      if(!majordata) throw Error("major not found");
+      if(!metadata) throw Error("metadata not found");
+      if(metadata.appliedNumber === undefined) throw Error("empty past metadata");
+
+      const userData = await User.findById(userId);
+
+      let interestedNum = 0;
+      if(userData){
+        if(userData.hopeMajor1 === metadata.major){
+          interestedNum = 1;
+        }
+        else if(userData.hopeMajor2 === metadata.major){
+          interestedNum = 2;
+        }
+      }
+      
+      const returndata = {
+        rank: 0,
+        secondMajor: majordata.name,
+        engName: majordata.engName,
+        pastRecruitNumber: pastmetadata?.recruitNumber,
+        recruitNumber: metadata.recruitNumber,
+        applyNumber: metadata.appliedNumber,
+        competition: Number((metadata.appliedNumber / metadata.recruitNumber).toFixed(2)),
+        pastCompetition: ((pastmetadata && pastmetadata.appliedNumber && pastmetadata.recruitNumber) 
+                          ? Number((pastmetadata.appliedNumber / pastmetadata.recruitNumber).toFixed(2)) : 0),
+        pastmean: pastmetadata?.passedGPAavg,
+        pastmin: pastmetadata?.passedGPAmin,
+        interest: majordata.interest,
+        interestedNum: interestedNum,
+        imagesrc: majordata.imagesrc
+      }
+
+      majorData.push(returndata);
+    }
+
+    //내림차순 정렬
+    majorData.sort((a, b) => b.competition - a.competition);
+
+    majorData.forEach((obj, index) => {
+      obj.rank = index + 1;
+    });
+
+    return majorData;
+  }
+  catch (e) {
+    throw e;
+  }
+}

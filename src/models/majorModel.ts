@@ -5,7 +5,9 @@ const Schema = mongoose.Schema;
 export interface IMajor {
   _id: Types.ObjectId;
   name: string;
-  recruiting: number;
+  engName: string;
+  interest: Number;
+  imagesrc: string;
 }
 
 const majorSchema = new Schema<IMajor>({
@@ -13,7 +15,16 @@ const majorSchema = new Schema<IMajor>({
     type: String,
     required: true,
   },
-  recruiting: Number,
+  engName: {
+    type: String,
+  },
+  interest: {
+    type: Number,
+    default: 0,
+  },
+  imagesrc: {
+    type: String,
+  }
 });
 
 export default mongoose.model<IMajor>('Major', majorSchema);
