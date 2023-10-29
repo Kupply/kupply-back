@@ -106,6 +106,18 @@ export const join = async (userData: userDataType) => {
   }
   await newUser.save();
 
+  //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
+  if (userData.role === 'candidate') {
+    const updateMajor1 = await Major.findOne({name: userData.hopeMajor1});
+    const updateMajor2 = await Major.findOne({name: userData.hopeMajor2});
+
+    if(updateMajor1 && updateMajor1.interest !== undefined){
+      await Major.updateOne({name: userData.hopeMajor1}, {interest: (updateMajor1.interest as number) + 1})
+    }
+    if(updateMajor2 && updateMajor2.interest !== undefined)
+      await Major.updateOne({name: userData.hopeMajor2}, {interest: (updateMajor2.interest as number) + 1})
+  }
+
   // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
   // email.certificate = true;
   // await email.save();
