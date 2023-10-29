@@ -114,18 +114,13 @@ export const landingPageInfo = async (
   next: NextFunction,
 ) => {
   try {
-    const landingPageInfo = await applicationService.getLandingPageData();
-    const userId = req.userId as Types.ObjectId;
-    let userData = null;
-
-    if(userId) userData = await userService.getMe(userId);
+    const userId = req.userId || null;
+    const landingPageInfo = await applicationService.getLandingPageData(userId);
 
     //1, 2지망 표시를 위해 hopeMajor도 받는다.
     res.status(200).send({
       status: 'success',
       data: landingPageInfo,
-      hopeMajor1: userData?.hopeMajor1,
-      hopeMajor2: userData?.hopeMajor2,
     });
   } catch (err) {
     next(err);

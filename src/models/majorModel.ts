@@ -7,6 +7,7 @@ export interface IMajor {
   name: string;
   engName: string;
   interest: Number;
+  imagesrc: string;
 }
 
 const majorSchema = new Schema<IMajor>({
@@ -20,6 +21,9 @@ const majorSchema = new Schema<IMajor>({
   interest: {
     type: Number,
     default: 0,
+  },
+  imagesrc: {
+    type: String,
   }
 });
 

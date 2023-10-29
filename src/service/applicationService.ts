@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import { ObjectId, Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
@@ -14,6 +14,10 @@ type applyDataType = {
   applyGPA: string;
   applyDescription: string;
 };
+
+type landingPageInputType = {
+  userId: Types.ObjectId | null;
+}
 
 const currentSemester: string = '2024-1';
 const pastSemester: string = '2023-1';
@@ -532,7 +536,7 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 };
 
 //landingPage의 표와 카드에 쓰이는 정보를 가져온다.
-export const getLandingPageData = async () => {
+export const getLandingPageData = async (userId: Types.ObjectId | null) => {
   try {
     //이번 학기의 모든 metadata를 가져온다.
     let currentMetadata = await ApplyMetaData.find({semester : currentSemester});
@@ -547,19 +551,35 @@ export const getLandingPageData = async () => {
       //데이터가 없을 경우 에러 처리
       if(!majordata) throw Error("major not found");
       if(!metadata) throw Error("metadata not found");
-      if(!metadata.appliedNumber) throw Error("empty past metadata");
+      if(metadata.appliedNumber === undefined) throw Error("empty past metadata");
+
+      const userData = await User.findById(userId);
+
+      let interestedNum = 0;
+      if(userData){
+        if(userData.hopeMajor1 === metadata.major){
+          interestedNum = 1;
+        }
+        else if(userData.hopeMajor2 === metadata.major){
+          interestedNum = 2;
+        }
+      }
       
       const returndata = {
-        name: majordata.name,
+        rank: 0,
+        secondMajor: majordata.name,
         engName: majordata.engName,
+        pastRecruitNumber: pastmetadata?.recruitNumber,
         recruitNumber: metadata.recruitNumber,
         applyNumber: metadata.appliedNumber,
         competition: Number((metadata.appliedNumber / metadata.recruitNumber).toFixed(2)),
         pastCompetition: ((pastmetadata && pastmetadata.appliedNumber && pastmetadata.recruitNumber) 
                           ? Number((pastmetadata.appliedNumber / pastmetadata.recruitNumber).toFixed(2)) : 0),
-        pastPassedGPAavg: pastmetadata?.passedGPAavg,
-        pastPassedGPAmin: pastmetadata?.passedGPAmin,
-        interest: majordata.interest
+        pastmean: pastmetadata?.passedGPAavg,
+        pastmin: pastmetadata?.passedGPAmin,
+        interest: majordata.interest,
+        interestedNum: interestedNum,
+        imagesrc: majordata.imagesrc
       }
 
       majorData.push(returndata);
@@ -567,6 +587,10 @@ export const getLandingPageData = async () => {
 
     //내림차순 정렬
     majorData.sort((a, b) => b.competition - a.competition);
+
+    majorData.forEach((obj, index) => {
+      obj.rank = index + 1;
+    });
 
     return majorData;
   }
