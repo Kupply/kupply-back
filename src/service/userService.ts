@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Application from '../models/applicationModel';
+import Email from '../models/emailModel';
 import * as s3 from '../utils/s3';
 
 export type updateDataType = {
@@ -28,14 +29,18 @@ export const getAllUsers = async () => {
 export const deleteMe = async (userId: Types.ObjectId) => {
   const user = await User.findById(userId);
 
-  if (!user) {
-    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
+  if (user) {
+    if (user.role === 'passer') {
+      // 합격자일 때 - 신상, 이메일 완전 삭제 / 지원정보는 유지
+      await Email.findOneAndDelete({ email: user.email });
+      await User.findByIdAndDelete(userId);
+    } else {
+      // 지원자일 때 - 이메일 완전 삭제/ 신상과 지원정보는 유지
+      await Email.findOneAndDelete({ email: user.email });
+      user.leave = true;
+      await user.save();
+    }
   }
-
-  // FIXME: 커뮤니티 기능이 없으니 지금은 모의지원 데이터만 삭제
-  await Application.findOneAndDelete({ candidateId: userId });
-
-  await User.findByIdAndDelete(userId);
 
   return;
 };
@@ -63,6 +68,7 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
+      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
@@ -85,6 +91,7 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
+      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
