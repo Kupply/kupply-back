@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Application from '../models/applicationModel';
+import Email from '../models/emailModel';
 import * as s3 from '../utils/s3';
 
 export type updateDataType = {
@@ -28,27 +29,29 @@ export const getAllUsers = async () => {
 export const deleteMe = async (userId: Types.ObjectId) => {
   const user = await User.findById(userId);
 
-  if (!user) {
-    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
-  }
+  if (user) {
+    if (user.role === 'passer') {
+      // 합격자일 때 - 신상, 이메일 완전 삭제 / 지원정보는 유지
+      await Email.findOneAndDelete({ email: user.email });
+      await User.findByIdAndDelete(userId);
+    } else {
+      // 지원자일 때 - 이메일 완전 삭제/ 신상과 지원정보는 유지
+      const deleteMajor1 = await Major.findById(user.hopeMajor1);
+      const deleteMajor2 = await Major.findById(user.hopeMajor2);
 
-  if(user.role === 'candidate'){
-    const deleteMajor1 = await Major.findById(user.hopeMajor1);
-    const deleteMajor2 = await Major.findById(user.hopeMajor2);
-
-    if(deleteMajor1 && deleteMajor1.interest !== undefined){
-      (deleteMajor1.interest as number)--;
-      await deleteMajor1.save();
+      if (deleteMajor1 && deleteMajor1.interest !== undefined) {
+        (deleteMajor1.interest as number)--;
+        await deleteMajor1.save();
+      }
+      if (deleteMajor2 && deleteMajor2.interest !== undefined) {
+        (deleteMajor2.interest as number)--;
+        await deleteMajor2.save();
+      }
+      await Email.findOneAndDelete({ email: user.email });
+      user.leave = true;
+      await user.save();
     }
-    if(deleteMajor2 && deleteMajor2.interest !== undefined){
-      (deleteMajor2.interest as number)--;
-      await deleteMajor2.save();
-    }
   }
-  // FIXME: 커뮤니티 기능이 없으니 지금은 모의지원 데이터만 삭제
-  await Application.findOneAndDelete({ candidateId: userId });
-
-  await User.findByIdAndDelete(userId);
 
   return;
 };
@@ -76,6 +79,7 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
+      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
@@ -98,6 +102,7 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
+      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
@@ -227,15 +232,15 @@ export const updateMe = async (
   if (updateData.newHopeMajor1 && updatedUser.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor1 });
 
-    if(major && major.interest !== undefined){
+    if (major && major.interest !== undefined) {
       (major.interest as number)++;
       console.log(major.name);
       await major.save();
     }
 
     const deleteMajor = await Major.findById(deleteMajor1);
-    
-    if(deleteMajor && deleteMajor.interest !== undefined){
+
+    if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
       console.log(deleteMajor.name);
       await deleteMajor.save();
@@ -245,7 +250,7 @@ export const updateMe = async (
   if (updateData.newHopeMajor2 && updatedUser.role === 'candidate') {
     const major = await Major.findOne({ name: updateData.newHopeMajor2 });
 
-    if(major && major.interest !== undefined){
+    if (major && major.interest !== undefined) {
       (major.interest as number)++;
       console.log(major.name);
       await major.save();
@@ -253,7 +258,7 @@ export const updateMe = async (
 
     const deleteMajor = await Major.findById(deleteMajor2);
 
-    if(deleteMajor && deleteMajor.interest !== undefined){
+    if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
       console.log(deleteMajor.name);
       await deleteMajor.save();

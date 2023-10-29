@@ -13,6 +13,7 @@ type applyDataType = {
   applyTimes: string;
   applyGPA: string;
   applyDescription: string;
+  applyGrade: string;
 };
 
 type landingPageInputType = {

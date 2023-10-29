@@ -16,6 +16,7 @@ export interface IUser extends Document {
   totalReport: number;
   profilePic: string;
   profileName: string; // s3에 저장된 이름
+  leave: boolean; // 탈퇴한 유저이면 true
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -109,6 +110,10 @@ const userSchema = new Schema<IUser>(
     },
     profileName: {
       type: String,
+    },
+    leave: {
+      type: Boolean,
+      default: false,
     },
     // info of passer only
     secondMajor: {

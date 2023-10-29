@@ -43,6 +43,13 @@ const applicationSchema = new Schema({
   applyDescription: {
     type: String,
   },
+  applyGrade: {
+    type: String,
+    required: true,
+    maxLength: 3,
+    minLength: 3,
+  },
+  // ex) 3-2 (3학년 2학기)
 });
 
 export default mongoose.model('Application', applicationSchema);

@@ -16,7 +16,9 @@ const emailSchema = new Schema({
   createdAt: {
     type: Date,
     default: function () {
-      return Date.now();
+      const currentTime = new Date();
+      currentTime.setHours(currentTime.getHours() + 9);
+      return currentTime;
     },
   },
   certificate: {

@@ -147,7 +147,7 @@ export const login = async (userData: IUser) => {
 
   const user = await User.findOne({ email }).select('+password');
 
-  if (!user) {
+  if (!user || (user && user.leave)) {
     throw { status: 401, message: '존재하지 않는 이메일입니다.' };
   } else if (!(await user.checkPassword(password))) {
     throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
@@ -235,10 +235,17 @@ export const sendEmail = async (userEmail: string) => {
   */
   // 회원가입 완료된 이메일일 때
   if (user) {
-    throw {
-      status: 400,
-      message: '이미 회원가입이 완료된 이메일 입니다. 로그인해주세요.',
-    };
+    if (user.leave) {
+      throw {
+        status: 400,
+        message: '계정을 삭제하신 후 일정기간 동안은 재가입이 불가능합니다.',
+      };
+    } else {
+      throw {
+        status: 400,
+        message: '이미 회원가입이 완료된 이메일 입니다. 로그인해주세요.',
+      };
+    }
   }
 
   // 회원가입 완료 안된 이메일일 때
@@ -247,7 +254,9 @@ export const sendEmail = async (userEmail: string) => {
 
   if (email) {
     email.code = code;
-    email.createdAt = new Date();
+    const currentTime = new Date();
+    currentTime.setHours(currentTime.getHours() + 9);
+    email.createdAt = currentTime;
     email.certificate = false; // 굳이 필요한가?
     await email.save();
   } else {
@@ -261,16 +270,24 @@ export const sendEmail = async (userEmail: string) => {
 export const certifyEmail = async (userEmail: string, code: string) => {
   const email = await Email.findOne({ email: userEmail });
 
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 9);
+
   if (!email) {
     throw { status: 400, message: '존재하지 않는 이메일 입니다.' };
-  } else if (email.code !== code) {
+  }
+  if (email.code !== code) {
     throw { status: 400, message: '인증번호가 일치하지 않습니다.' };
-  } else if (email.createdAt.getTime() + 3 * 60 * 1000 < Date.now()) {
+  }
+
+  const createdTime = email.createdAt;
+  if (createdTime.getTime() + 4 * 60 * 1000 < currentTime.getTime()) {
     throw {
       status: 400,
       message: '유효 시간이 만료되었습니다. 인증번호를 다시 요청해주세요.',
     };
   }
+
   //인증 완료는 회원가입이 끝난 시점에 처리되어야 한다. -> 방식 수정
   email.certificate = true;
   await email.save();
