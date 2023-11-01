@@ -30,7 +30,7 @@ export const createPost = async (postData: {
 
   if (user && user.totalReport >= 5) {
     throw {
-      status: 401,
+      status: 400,
       message: '누적된 신고수로 글을 작성할 수 없는 사용자입니다.',
     };
   }

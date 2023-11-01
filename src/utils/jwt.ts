@@ -27,18 +27,6 @@ export const createRefreshToken = () => {
   return refreshToken;
 };
 
-export const createCertificateToken = (user: IUser) => {
-  const accessToken = jwt.sign(
-    { id: user._id, role: user.role },
-    process.env.JWT_CERTIFICATE_SECRET_KEY!,
-    {
-      expiresIn: '1h',
-    },
-  );
-
-  return accessToken;
-};
-
 export const verifyToken = (accessToken: string) => {
   try {
     const { id, role } = jwt.verify(

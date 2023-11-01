@@ -29,27 +29,30 @@ export const login = async (
   try {
     const { isRememberOn } = req.body;
     // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
-    const { updatedUser, accessToken, refreshToken } = await authService.login(
-      req.body,
-    );
+    const {
+      updatedUser,
+      accessToken,
+      refreshToken,
+      accessTokenExpire,
+      refreshTokenExpire,
+    } = await authService.login(req.body);
 
     res.cookie('accessToken', accessToken, {
-      expires: new Date(Date.now() + 1 * 60 * 60 * 1000),
-      httpOnly: true,
+      expires: accessTokenExpire,
+      httpOnly: false,
     });
-    if (isRememberOn) {
-      res.cookie('refreshToken', refreshToken, {
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-      });
-    }
+    res.cookie('refreshToken', refreshToken, {
+      expires: refreshTokenExpire,
+      httpOnly: false,
+    });
 
     res.status(200).json({
       status: 'success',
       data: {
         user: updatedUser,
         accessToken,
-        refreshToken: isRememberOn ? refreshToken : undefined,
+        accessTokenExpire: accessTokenExpire.getTime(),
+        refreshToken,
       },
     });
   } catch (err) {
@@ -58,7 +61,11 @@ export const login = async (
 };
 
 export const logout = async (req: Request, res: Response) => {
-  await authService.logout(req.cookies.accessToken);
+  let refreshToken = '';
+  if (req.headers.authorization) {
+    refreshToken = req.headers.authorization.split(' ')[1];
+  }
+  await authService.logout(refreshToken);
   req.userId = undefined;
   req.userRole = undefined;
   res.clearCookie('accessToken', { httpOnly: true });
@@ -72,22 +79,72 @@ export const protect = async (
   next: NextFunction,
 ) => {
   try {
-    const { userId, userRole, newAccessToken } = await authService.protect(
-      req.cookies.accessToken,
-      req.cookies.refreshToken,
-    );
+    let token = '';
+    if (req.headers.authorization) {
+      token = req.headers.authorization.split(' ')[1];
+    }
+    const { userId, userRole } = await authService.protect(token);
 
     req.userId = userId;
     req.userRole = userRole;
 
-    if (newAccessToken !== '') {
-      res.cookie('accessToken', newAccessToken, {
-        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        httpOnly: true,
-      });
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+
+// export const protect = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const { userId, userRole, newAccessToken } = await authService.protect(
+//       req.cookies.accessToken,
+//       req.cookies.refreshToken,
+//     );
+
+//     req.userId = userId;
+//     req.userRole = userRole;
+
+//     if (newAccessToken !== '') {
+//       const accessTokenExpire = new Date();
+//       accessTokenExpire.setHours(accessTokenExpire.getHours() + 10); // 한국시간 시차 9시간, 만료 시간 1시간
+
+//       res.cookie('accessToken', newAccessToken, {
+//         expires: accessTokenExpire,
+//         httpOnly: true,
+//       });
+//     }
+
+//     next();
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+export const refreshAccessToken = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    let refreshToken = '';
+    if (req.headers.authorization) {
+      refreshToken = req.headers.authorization.split(' ')[1];
     }
 
-    next();
+    const { newAccessToken, newAccessTokenExpire } =
+      await authService.refreshAccessToken(req.body.accessToken, refreshToken);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        accessToken: newAccessToken,
+        accessTokenExpire: newAccessTokenExpire.getTime(),
+      },
+    });
   } catch (err) {
     next(err);
   }

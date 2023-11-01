@@ -31,7 +31,7 @@ export const join = async (userData: userDataType) => {
   // 인증된 email인지 확인
   const email = await Email.findOne({ email: userData.email });
   if (!email || !email.certificate) {
-    throw { status: 401, message: '이메일 인증을 먼저 완료해주세요.' };
+    throw { status: 400, message: '이메일 인증을 먼저 완료해주세요.' };
   }
 
   const firstMajor = await Major.findOne({
@@ -108,14 +108,20 @@ export const join = async (userData: userDataType) => {
 
   //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
   if (userData.role === 'candidate') {
-    const updateMajor1 = await Major.findOne({name: userData.hopeMajor1});
-    const updateMajor2 = await Major.findOne({name: userData.hopeMajor2});
+    const updateMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+    const updateMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
 
-    if(updateMajor1 && updateMajor1.interest !== undefined){
-      await Major.updateOne({name: userData.hopeMajor1}, {interest: (updateMajor1.interest as number) + 1})
+    if (updateMajor1 && updateMajor1.interest !== undefined) {
+      await Major.updateOne(
+        { name: userData.hopeMajor1 },
+        { interest: (updateMajor1.interest as number) + 1 },
+      );
     }
-    if(updateMajor2 && updateMajor2.interest !== undefined)
-      await Major.updateOne({name: userData.hopeMajor2}, {interest: (updateMajor2.interest as number) + 1})
+    if (updateMajor2 && updateMajor2.interest !== undefined)
+      await Major.updateOne(
+        { name: userData.hopeMajor2 },
+        { interest: (updateMajor2.interest as number) + 1 },
+      );
   }
 
   // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
@@ -148,9 +154,9 @@ export const login = async (userData: IUser) => {
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || (user && user.leave)) {
-    throw { status: 401, message: '존재하지 않는 이메일입니다.' };
+    throw { status: 400, message: '존재하지 않는 이메일입니다.' };
   } else if (!(await user.checkPassword(password))) {
-    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
+    throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
   }
 
   const accessToken = jwt.createToken(user);
@@ -164,7 +170,20 @@ export const login = async (userData: IUser) => {
     },
   );
 
-  return { updatedUser, accessToken, refreshToken };
+  const accessTokenExpire = new Date();
+  accessTokenExpire.setHours(accessTokenExpire.getHours() + 9); // 한국시간 시차 9시간, 만료 시간 1시간
+  accessTokenExpire.setMinutes(accessTokenExpire.getMinutes() + 1); // FIXME: 테스트용
+  const refreshTokenExpire = new Date();
+  refreshTokenExpire.setHours(refreshTokenExpire.getHours() + 9); // 한국시간 시차 9시간
+  refreshTokenExpire.setDate(refreshTokenExpire.getDate() + 30); // 만료 시간 30일
+
+  return {
+    updatedUser,
+    accessToken,
+    refreshToken,
+    accessTokenExpire,
+    refreshTokenExpire,
+  };
 };
 
 export const logout = async (accessToken: string) => {
@@ -174,13 +193,11 @@ export const logout = async (accessToken: string) => {
   }
 };
 
-export const protect = async (accessToken: string, refreshToken: string) => {
+export const protect = async (accessToken: string) => {
   // 1) 토큰이 있는지 확인, 없으면 로그인하도록.
-  if (!accessToken && !refreshToken) {
+  if (!accessToken) {
     throw { status: 401, message: '로그인 후 재시도해주세요.' };
   }
-
-  let newAccessToken: string = '';
   let userId: Types.ObjectId;
   let userRole: string;
 
@@ -188,35 +205,96 @@ export const protect = async (accessToken: string, refreshToken: string) => {
   const accessResult = jwt.verifyToken(accessToken);
 
   if (accessResult === null) {
-    // 2 - 2) accessToken 만료되었음
-    // 3) user model에서 refreshToken 가져오고 유효한지 확인
-    const { id } = jwt.decodeToken(accessToken);
-    const user = await User.findById(id);
-
-    if (!user || !user.refreshToken)
-      throw {
-        status: 400,
-        message: 'Invalid refresh token - id error',
-      };
-
-    if (jwt.verifyRefreshToken(user.refreshToken)) {
-      // 3 - 1) refreshToken 유효하다면 accessToken 새로 발급하고 user와 accessToken 리턴
-      newAccessToken = jwt.createToken(user);
-      userId = user.id;
-      userRole = user.role;
-    } else {
-      // 3 - 2) refreshToken도 만료되었다면 새로 로그인하도록 throw error.
-      throw {
-        status: 400,
-        message: '세션이 만료되었습니다. 다시 로그인해주세요.',
-      };
-    }
+    throw {
+      status: 401,
+      message: '세션이 만료되었습니다. 다시 로그인해주세요.',
+    };
   } else {
     userId = accessResult.id;
     userRole = accessResult.role;
   }
 
-  return { userId, userRole, newAccessToken };
+  return { userId, userRole };
+};
+
+// export const protect = async (accessToken: string, refreshToken: string) => {
+//   // 1) 토큰이 있는지 확인, 없으면 로그인하도록.
+//   if (!accessToken && !refreshToken) {
+//     throw { status: 401, message: '로그인 후 재시도해주세요.' };
+//   }
+
+//   let newAccessToken: string = '';
+//   let userId: Types.ObjectId;
+//   let userRole: string;
+
+//   // 2) accessToken이 유효한지 확인
+//   const accessResult = jwt.verifyToken(accessToken);
+
+//   if (accessResult === null) {
+//     // 2 - 2) accessToken 만료되었음
+//     // 3) user model에서 refreshToken 가져오고 유효한지 확인
+//     const { id } = jwt.decodeToken(accessToken);
+//     const user = await User.findById(id);
+
+//     if (!user || !user.refreshToken)
+//       throw {
+//         status: 400,
+//         message: 'Invalid refresh token - id error',
+//       };
+
+//     if (jwt.verifyRefreshToken(user.refreshToken)) {
+//       // 3 - 1) refreshToken 유효하다면 accessToken 새로 발급하고 user와 accessToken 리턴
+//       newAccessToken = jwt.createToken(user);
+//       userId = user.id;
+//       userRole = user.role;
+//     } else {
+//       // 3 - 2) refreshToken도 만료되었다면 새로 로그인하도록 throw error.
+//       throw {
+//         status: 400,
+//         message: '세션이 만료되었습니다. 다시 로그인해주세요.',
+//       };
+//     }
+//   } else {
+//     userId = accessResult.id;
+//     userRole = accessResult.role;
+//   }
+
+//   return { userId, userRole, newAccessToken };
+// };
+
+export const refreshAccessToken = async (
+  accessToken: string,
+  refreshToken: string,
+) => {
+  const { id } = jwt.decodeToken(accessToken);
+  const user = await User.findOne({ _id: id, refreshToken: refreshToken });
+
+  if (!user) {
+    throw {
+      status: 401,
+      message: '다시 로그인해 주세요',
+    };
+  }
+
+  let newAccessToken: string = '';
+  let newAccessTokenExpire = new Date();
+
+  if (jwt.verifyRefreshToken(refreshToken)) {
+    // 3 - 1) refreshToken 유효하다면 accessToken 새로 발급
+    newAccessToken = jwt.createToken(user);
+    // newAccessTokenExpire = new Date();
+    // newAccessTokenExpire.setHours(newAccessTokenExpire.getHours() + 10); // 한국시간 시차 9시간, 만료 시간 1시간
+    newAccessTokenExpire.setHours(newAccessTokenExpire.getHours() + 9);
+    newAccessTokenExpire.setMinutes(newAccessTokenExpire.getMinutes() + 1); // FIXME: 테스트용
+  } else {
+    // 3 - 2) refreshToken 만료되었다면 새로 로그인하도록 throw error.
+    throw {
+      status: 400,
+      message: '세션이 만료되었습니다. 다시 로그인해주세요.',
+    };
+  }
+
+  return { newAccessToken, newAccessTokenExpire };
 };
 
 const generateRandomString = (min: number, max: number): string => {
