@@ -10,7 +10,6 @@ type userDataType = {
   password: string;
   name: string;
   studentId: string;
-  phoneNumber: string;
   email: string;
   firstMajor: string;
   nickname: string;
@@ -65,7 +64,6 @@ export const join = async (userData: userDataType) => {
       name: userData.name,
       studentId: userData.studentId,
       email: userData.email,
-      phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
@@ -95,7 +93,6 @@ export const join = async (userData: userDataType) => {
       name: userData.name,
       studentId: userData.studentId,
       email: userData.email,
-      phoneNumber: userData.phoneNumber,
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
