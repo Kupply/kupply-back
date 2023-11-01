@@ -10,5 +10,6 @@ router.post('/sendEmail', authController.sendEmail);
 router.post('/certifyEmail', authController.certifyEmail);
 router.post('/nicknameCheck', authController.nicknameCheck);
 router.post('/forgotPassword', authController.forgotPassword);
+router.post('/refreshAccessToken', authController.refreshAccessToken);
 
 export default router;
