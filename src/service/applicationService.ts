@@ -47,7 +47,7 @@ export const getCardDatas = async () => {
     }
   });
   result.push({
-    name: '경영대학',
+    name: '경영대학 경영학과',
     passNum: business.length,
     avg: busAvg,
     min: busMin,
