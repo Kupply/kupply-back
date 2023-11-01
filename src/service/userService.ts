@@ -136,7 +136,7 @@ export const updateMe = async (
   if (updateData.newStudentId && updateData.newStudentId !== user.studentId) {
     const tmpUser = await User.findOne({ studentId: updateData.newStudentId });
     if (tmpUser) {
-      throw { status: 401, message: '이미 사용중인 학번입니다.' };
+      throw { status: 400, message: '이미 사용중인 학번입니다.' };
     } else {
       user.studentId = updateData.newStudentId;
     }
@@ -161,7 +161,7 @@ export const updateMe = async (
     });
 
     if (tmpUser) {
-      throw { status: 401, message: '이미 사용중인 전화번호입니다.' };
+      throw { status: 400, message: '이미 사용중인 전화번호입니다.' };
     } else {
       user.phoneNumber = updateData.newPhoneNumber;
     }
@@ -183,7 +183,7 @@ export const updateMe = async (
   if (updateData.newNickname && updateData.newNickname !== user.nickname) {
     const tmpUser = await User.findOne({ nickname: updateData.newNickname });
     if (tmpUser) {
-      throw { status: 401, message: '이미 사용중인 닉네임입니다.' };
+      throw { status: 400, message: '이미 사용중인 닉네임입니다.' };
     } else {
       user.nickname = updateData.newNickname;
     }
@@ -214,7 +214,7 @@ export const updateMe = async (
     // => 더 좋은 방법이 있을 것 같은데...
     if (user.changeGPA >= 2) {
       throw {
-        status: 401,
+        status: 400,
         message:
           '이중전공 지원 기간에는 학점을 최대 두 번까지만 변경 가능합니다.',
       };
@@ -281,7 +281,7 @@ export const resetPassword = async (
         '로그인한 유저만 비밀번호를 변경할 수 있으므로, 실행되는 일 없을 것임',
     };
   } else if (!(await user.checkPassword(oldPassword))) {
-    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
+    throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
   }
 
   user.password = newPassword;
