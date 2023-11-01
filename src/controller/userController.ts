@@ -87,9 +87,9 @@ export const resetPassword = async (
 ) => {
   try {
     const userId = req.userId as Types.ObjectId;
-    const { oldPassword, newPassword } = req.body;
+    const { newPassword } = req.body;
 
-    await userService.resetPassword(userId, oldPassword, newPassword);
+    await userService.resetPassword(userId, newPassword);
 
     res.status(200).json({
       status: 'success',
