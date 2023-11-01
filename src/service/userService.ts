@@ -251,7 +251,6 @@ export const updateMe = async (
 
 export const resetPassword = async (
   userId: Types.ObjectId,
-  oldPassword: string,
   newPassword: string,
 ) => {
   const user = await User.findById(userId).select('+password');
@@ -262,9 +261,10 @@ export const resetPassword = async (
       message:
         '로그인한 유저만 비밀번호를 변경할 수 있으므로, 실행되는 일 없을 것임',
     };
-  } else if (!(await user.checkPassword(oldPassword))) {
-    throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
   }
+  // else if (!(await user.checkPassword(oldPassword))) {
+  //   throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
+  // }
 
   user.password = newPassword;
   await user.save();
