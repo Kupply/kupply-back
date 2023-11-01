@@ -9,7 +9,6 @@ export type updateDataType = {
   newName: string;
   newStudentId: string;
   newFirstMajor: string;
-  newPhoneNumber: string;
   newProfilePic: string;
   newNickname: string;
   newHopeMajor1: string;
@@ -79,7 +78,6 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
-      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
@@ -102,7 +100,6 @@ export const getMe = async (userId: Types.ObjectId) => {
     return {
       name: user.name,
       nickname: user.nickname,
-      phoneNumber: user.phoneNumber,
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
@@ -149,21 +146,6 @@ export const updateMe = async (
       throw { status: 404, message: '존재하지 않는 전공명입니다.' };
     } else {
       user.firstMajor = major._id;
-    }
-  }
-
-  if (
-    updateData.newPhoneNumber &&
-    updateData.newPhoneNumber !== user.phoneNumber
-  ) {
-    const tmpUser = await User.findOne({
-      phoneNumber: updateData.newPhoneNumber,
-    });
-
-    if (tmpUser) {
-      throw { status: 400, message: '이미 사용중인 전화번호입니다.' };
-    } else {
-      user.phoneNumber = updateData.newPhoneNumber;
     }
   }
 

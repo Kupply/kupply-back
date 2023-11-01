@@ -7,7 +7,6 @@ export interface IUser extends Document {
   password: string;
   name: string;
   studentId: string;
-  phoneNumber: string;
   email: string;
   firstMajor: Types.ObjectId;
   nickname: string;
@@ -51,11 +50,6 @@ const userSchema = new Schema<IUser>(
       type: String,
       required: [true, 'User must have a student ID.'],
       unique: true,
-    },
-    phoneNumber: {
-      type: String,
-      unique: true,
-      match: [/^010-\d{4}-\d{4}$/, 'Please fill a valid phone number'],
     },
     email: {
       type: String,
