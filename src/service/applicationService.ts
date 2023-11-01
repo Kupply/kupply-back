@@ -2,7 +2,7 @@ import { ObjectId, Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
-import ApplyMetaData from '../models/applicationMetaDataModel'
+import ApplyMetaData from '../models/applicationMetaDataModel';
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -18,22 +18,25 @@ type applyDataType = {
 
 type landingPageInputType = {
   userId: Types.ObjectId | null;
-}
+};
 
 const currentSemester: string = '2023-2';
 const prevSem = '2023-1';
 
 type cardData = {
   name: string;
-  applyNum: number;
+  passNum: number;
   avg: number;
   min: number;
 };
 export const getCardDatas = async () => {
   const result: cardData[] = [];
+
+  const businessM = (await Major.findOne({ name: '경영학과' })) as IMajor;
   const business = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '경영학과',
+    applyMajor1: businessM._id,
+    pnp: 'PASS',
   });
   let busAvg = 0,
     busMin = 4.5;
@@ -45,14 +48,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '경영대학',
-    applyNum: business.length,
+    passNum: business.length,
     avg: busAvg,
     min: busMin,
   });
 
+  const computerM = (await Major.findOne({ name: '컴퓨터학과' })) as IMajor;
   const computer = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '컴퓨터학과',
+    applyMajor1: computerM._id,
+    pnp: 'PASS',
   });
   let compAvg = 0,
     compMin = 4.5;
@@ -64,14 +69,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '정보대학 컴퓨터학과',
-    applyNum: computer.length,
+    passNum: computer.length,
     avg: compAvg,
     min: compMin,
   });
 
+  const psychoM = (await Major.findOne({ name: '심리학부' })) as IMajor;
   const psycho = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '심리학부',
+    applyMajor1: psychoM._id,
+    pnp: 'PASS',
   });
   let psychoAvg = 0,
     psychoMin = 4.5;
@@ -83,14 +90,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '심리학부',
-    applyNum: psycho.length,
+    passNum: psycho.length,
     avg: psychoAvg,
     min: psychoMin,
   });
 
+  const economyM = (await Major.findOne({ name: '경제학과' })) as IMajor;
   const economy = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '경제학과',
+    applyMajor1: economyM._id,
+    pnp: 'PASS',
   });
   let economyAvg = 0,
     economyMin = 4.5;
@@ -102,14 +111,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '정경대학 경제학과',
-    applyNum: economy.length,
+    passNum: economy.length,
     avg: economyAvg,
     min: economyMin,
   });
 
+  const statsM = (await Major.findOne({ name: '통계학과' })) as IMajor;
   const stats = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '통계학과',
+    applyMajor1: statsM._id,
+    pnp: 'PASS',
   });
   let statsAvg = 0,
     statsMin = 4.5;
@@ -121,14 +132,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '정경대학 통계학과',
-    applyNum: stats.length,
+    passNum: stats.length,
     avg: statsAvg,
     min: statsMin,
   });
 
+  const mediaM = (await Major.findOne({ name: '미디어학부' })) as IMajor;
   const media = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '미디어학부',
+    applyMajor1: mediaM._id,
+    pnp: 'PASS',
   });
   let mediaAvg = 0,
     mediaMin = 4.5;
@@ -140,14 +153,18 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '미디어학부',
-    applyNum: media.length,
+    passNum: media.length,
     avg: mediaAvg,
     min: mediaMin,
   });
 
+  const sigjakyungM = (await Major.findOne({
+    name: '식품자원경제학과',
+  })) as IMajor;
   const sigjakyung = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '식품자원경제학과',
+    applyMajor1: sigjakyungM._id,
+    pnp: 'PASS',
   });
   let sigjakyungAvg = 0,
     sigjakyungMin = 4.5;
@@ -159,14 +176,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '생명과학대학 식품자원경제학과',
-    applyNum: sigjakyung.length,
+    passNum: sigjakyung.length,
     avg: sigjakyungAvg,
     min: sigjakyungMin,
   });
 
+  const mathematicsM = (await Major.findOne({ name: '수학과' })) as IMajor;
   const mathematics = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '수학과',
+    applyMajor1: mathematicsM._id,
+    pnp: 'PASS',
   });
   let mathematicsAvg = 0,
     mathematicsMin = 4.5;
@@ -178,14 +197,16 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '이과대학 수학과',
-    applyNum: mathematics.length,
+    passNum: mathematics.length,
     avg: mathematicsAvg,
     min: mathematicsMin,
   });
 
+  const chemistryM = (await Major.findOne({ name: '화학과' })) as IMajor;
   const chemistry = await Application.find({
     applySemester: prevSem,
-    applyMajor1: '화학과',
+    applyMajor1: chemistryM._id,
+    pnp: 'PASS',
   });
   let chemistryAvg = 0,
     chemistryMin = 4.5;
@@ -197,7 +218,7 @@ export const getCardDatas = async () => {
   });
   result.push({
     name: '이과대학 화학과',
-    applyNum: chemistry.length,
+    passNum: chemistry.length,
     avg: chemistryAvg,
     min: chemistryMin,
   });
@@ -243,14 +264,20 @@ export const createApplicationData = async (
       await newApplication.save(); //DB에 application 데이터를 저장한다.
 
       //Metadata의 appliedNumber를 증가시킨다.
-      const updateMetaData1 = await ApplyMetaData.findOne({semester: currentSemester, major: applyMajor1._id});
-      const updateMetaData2 = await ApplyMetaData.findOne({semester: currentSemester, major: applyMajor2._id});
+      const updateMetaData1 = await ApplyMetaData.findOne({
+        semester: currentSemester,
+        major: applyMajor1._id,
+      });
+      const updateMetaData2 = await ApplyMetaData.findOne({
+        semester: currentSemester,
+        major: applyMajor2._id,
+      });
 
-      if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+      if (updateMetaData1 && updateMetaData1.appliedNumber !== undefined) {
         updateMetaData1.appliedNumber++;
         await updateMetaData1.save();
       }
-      if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+      if (updateMetaData2 && updateMetaData2.appliedNumber !== undefined) {
         updateMetaData2.appliedNumber++;
         await updateMetaData2.save();
       }
@@ -374,14 +401,20 @@ export const deleteApplicationData = async (userId: Types.ObjectId) => {
     }
 
     //Metadata의 appliedNumber를 증가시킨다.
-    const updateMetaData1 = await ApplyMetaData.findOne({semester: user.applySemester, major: user.applyMajor1});
-    const updateMetaData2 = await ApplyMetaData.findOne({semester: user.applySemester, major: user.applyMajor2});
+    const updateMetaData1 = await ApplyMetaData.findOne({
+      semester: user.applySemester,
+      major: user.applyMajor1,
+    });
+    const updateMetaData2 = await ApplyMetaData.findOne({
+      semester: user.applySemester,
+      major: user.applyMajor2,
+    });
 
-    if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+    if (updateMetaData1 && updateMetaData1.appliedNumber !== undefined) {
       updateMetaData1.appliedNumber--;
       await updateMetaData1.save();
     }
-    if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+    if (updateMetaData2 && updateMetaData2.appliedNumber !== undefined) {
       updateMetaData2.appliedNumber--;
       await updateMetaData2.save();
     }
@@ -398,14 +431,17 @@ export const updateApplicationData = async (
 ) => {
   try {
     const { applySemester } = applyData; //applyData를 받아 온다.
-    
+
     if (applySemester && applySemester !== currentSemester) {
       throw new Error('현재 학기가 아닌 지원 정보는 추가할 수 없습니다.');
     }
 
-    let updateApplicationData = await Application.findOne({candidateId: candidateId, applySemester: currentSemester});
+    let updateApplicationData = await Application.findOne({
+      candidateId: candidateId,
+      applySemester: currentSemester,
+    });
 
-    if(!updateApplicationData)
+    if (!updateApplicationData)
       throw new Error('해당 Application 정보가 없습니다.');
 
     const pastMajor1 = updateApplicationData.applyMajor1;
@@ -428,35 +464,49 @@ export const updateApplicationData = async (
     updateApplicationData.save();
 
     //metadata의 appliednumber를 갱신한다.
-    const deleteMetadata1 = await ApplyMetaData.findOne({semester: currentSemester, major: pastMajor1._id});
-    const deleteMetadata2 = (pastMajor2 ? await ApplyMetaData.findOne({semester: currentSemester, major: pastMajor2._id}) : undefined);
+    const deleteMetadata1 = await ApplyMetaData.findOne({
+      semester: currentSemester,
+      major: pastMajor1._id,
+    });
+    const deleteMetadata2 = pastMajor2
+      ? await ApplyMetaData.findOne({
+          semester: currentSemester,
+          major: pastMajor2._id,
+        })
+      : undefined;
 
-    if(deleteMetadata1 && deleteMetadata1.appliedNumber !== undefined){
+    if (deleteMetadata1 && deleteMetadata1.appliedNumber !== undefined) {
       deleteMetadata1.appliedNumber--;
       await deleteMetadata1.save();
     }
-    if(deleteMetadata2 && deleteMetadata2.appliedNumber !== undefined){
+    if (deleteMetadata2 && deleteMetadata2.appliedNumber !== undefined) {
       deleteMetadata2.appliedNumber--;
       await deleteMetadata2.save();
     }
 
-    const updateMetaData1 = await ApplyMetaData.findOne({semester: currentSemester, major: updateApplicationData.applyMajor1._id});
+    const updateMetaData1 = await ApplyMetaData.findOne({
+      semester: currentSemester,
+      major: updateApplicationData.applyMajor1._id,
+    });
     const updateMetaData2 = await ApplyMetaData.findOne(
-      updateApplicationData.applyMajor2 ? 
-      ({semester: currentSemester, major: updateApplicationData.applyMajor2._id}) : 
-      undefined);
+      updateApplicationData.applyMajor2
+        ? {
+            semester: currentSemester,
+            major: updateApplicationData.applyMajor2._id,
+          }
+        : undefined,
+    );
 
-    if(updateMetaData1 && updateMetaData1.appliedNumber !== undefined){
+    if (updateMetaData1 && updateMetaData1.appliedNumber !== undefined) {
       updateMetaData1.appliedNumber++;
       await updateMetaData1.save();
     }
-    if(updateMetaData2 && updateMetaData2.appliedNumber !== undefined){
+    if (updateMetaData2 && updateMetaData2.appliedNumber !== undefined) {
       updateMetaData2.appliedNumber++;
       await updateMetaData2.save();
     }
 
     return updateApplicationData;
-    
   } catch (error) {
     throw error;
   }
@@ -722,32 +772,37 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 export const getLandingPageData = async (userId: Types.ObjectId | null) => {
   try {
     //이번 학기의 모든 metadata를 가져온다.
-    let currentMetadata = await ApplyMetaData.find({semester : currentSemester});
+    let currentMetadata = await ApplyMetaData.find({
+      semester: currentSemester,
+    });
 
     let majorData = [];
     //각 전공에 해당하는 metadata의 정보를 취합한다.
-    for (let i = 0; i< currentMetadata.length; i++) {
+    for (let i = 0; i < currentMetadata.length; i++) {
       const metadata = currentMetadata[i];
       const majordata = await Major.findById(metadata.major);
-      const pastmetadata = await ApplyMetaData.findOne({major : metadata.major, semester: prevSem});
+      const pastmetadata = await ApplyMetaData.findOne({
+        major: metadata.major,
+        semester: prevSem,
+      });
 
       //데이터가 없을 경우 에러 처리
-      if(!majordata) throw Error("major not found");
-      if(!metadata) throw Error("metadata not found");
-      if(metadata.appliedNumber === undefined) throw Error("empty past metadata");
+      if (!majordata) throw Error('major not found');
+      if (!metadata) throw Error('metadata not found');
+      if (metadata.appliedNumber === undefined)
+        throw Error('empty past metadata');
 
       const userData = await User.findById(userId);
 
       let interestedNum = 0;
-      if(userData){
-        if(userData.hopeMajor1 === metadata.major){
+      if (userData) {
+        if (userData.hopeMajor1 === metadata.major) {
           interestedNum = 1;
-        }
-        else if(userData.hopeMajor2 === metadata.major){
+        } else if (userData.hopeMajor2 === metadata.major) {
           interestedNum = 2;
         }
       }
-      
+
       const returndata = {
         rank: 0,
         secondMajor: majordata.name,
@@ -755,15 +810,25 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
         pastRecruitNumber: pastmetadata?.recruitNumber,
         recruitNumber: metadata.recruitNumber,
         applyNumber: metadata.appliedNumber,
-        competition: Number((metadata.appliedNumber / metadata.recruitNumber).toFixed(2)),
-        pastCompetition: ((pastmetadata && pastmetadata.appliedNumber && pastmetadata.recruitNumber) 
-                          ? Number((pastmetadata.appliedNumber / pastmetadata.recruitNumber).toFixed(2)) : 0),
+        competition: Number(
+          (metadata.appliedNumber / metadata.recruitNumber).toFixed(2),
+        ),
+        pastCompetition:
+          pastmetadata &&
+          pastmetadata.appliedNumber &&
+          pastmetadata.recruitNumber
+            ? Number(
+                (
+                  pastmetadata.appliedNumber / pastmetadata.recruitNumber
+                ).toFixed(2),
+              )
+            : 0,
         pastmean: pastmetadata?.passedGPAavg,
         pastmin: pastmetadata?.passedGPAmin,
         interest: majordata.interest,
         interestedNum: interestedNum,
-        imagesrc: majordata.imagesrc
-      }
+        imagesrc: majordata.imagesrc,
+      };
 
       majorData.push(returndata);
     }
@@ -776,8 +841,7 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
     });
 
     return majorData;
-  }
-  catch (e) {
+  } catch (e) {
     throw e;
   }
-}
+};
