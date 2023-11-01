@@ -310,7 +310,9 @@ export const getPastDataByMajorAndSemester = async (
 
     // 합격자 중앙 GPA
     const medianGPA_passed =
-      sortedApplyGPAValues_passed[Math.floor(sortedApplyGPAValues.length / 2)];
+      sortedApplyGPAValues_passed[
+        Math.floor(sortedApplyGPAValues_passed.length / 2)
+      ];
     const medianGPANum_passed = passedGPACountMap.get(medianGPA_passed)!;
     passedMedianGPAData = {
       gpa: medianGPA_passed,
