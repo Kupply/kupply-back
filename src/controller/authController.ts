@@ -27,8 +27,6 @@ export const login = async (
   next: NextFunction,
 ) => {
   try {
-    const { isRememberOn } = req.body;
-    // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
     const {
       updatedUser,
       accessToken,
