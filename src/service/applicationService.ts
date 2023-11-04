@@ -852,3 +852,32 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
     throw e;
   }
 };
+
+export const myStage = async (userId: Types.ObjectId) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { status: 400, message: 'User not found' };
+  }
+
+  const returnData: {
+    applyNum: number;
+    rank: number;
+  }[] = [];
+
+  const hopeMajors = [user.hopeMajor1, user.hopeMajor2];
+
+  for (let i = 0; i < hopeMajors.length; i++) {
+    const application = await Application.find({
+      applyMajor1: hopeMajors[i],
+      applySemester: currentSemester,
+    });
+
+    const applicationGPAs = application.map((app) => app.applyGPA);
+    const rank = applicationGPAs.filter((gpa) => gpa > user.curGPA).length + 1;
+
+    returnData.push({ applyNum: applicationGPAs.length, rank: rank });
+  }
+
+  return returnData;
+};

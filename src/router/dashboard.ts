@@ -12,5 +12,6 @@ router.get(
   '/hopeMajorsCurrentInfo',
   applicationController.hopeMajorsCurrentInfo,
 );
+router.get('/myStage', applicationController.myStage);
 
 export default router;
