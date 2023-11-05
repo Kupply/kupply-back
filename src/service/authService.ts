@@ -168,8 +168,7 @@ export const login = async (userData: IUser) => {
   );
 
   const accessTokenExpire = new Date();
-  accessTokenExpire.setHours(accessTokenExpire.getHours() + 9); // 한국시간 시차 9시간, 만료 시간 1시간
-  accessTokenExpire.setMinutes(accessTokenExpire.getMinutes() + 1); // FIXME: 테스트용
+  accessTokenExpire.setHours(accessTokenExpire.getHours() + 10); // 한국시간 시차 9시간, 만료 시간 1시간
   const refreshTokenExpire = new Date();
   refreshTokenExpire.setHours(refreshTokenExpire.getHours() + 9); // 한국시간 시차 9시간
   refreshTokenExpire.setDate(refreshTokenExpire.getDate() + 30); // 만료 시간 30일
@@ -279,10 +278,7 @@ export const refreshAccessToken = async (
   if (jwt.verifyRefreshToken(refreshToken)) {
     // 3 - 1) refreshToken 유효하다면 accessToken 새로 발급
     newAccessToken = jwt.createToken(user);
-    // newAccessTokenExpire = new Date();
-    // newAccessTokenExpire.setHours(newAccessTokenExpire.getHours() + 10); // 한국시간 시차 9시간, 만료 시간 1시간
-    newAccessTokenExpire.setHours(newAccessTokenExpire.getHours() + 9);
-    newAccessTokenExpire.setMinutes(newAccessTokenExpire.getMinutes() + 1); // FIXME: 테스트용
+    newAccessTokenExpire.setHours(newAccessTokenExpire.getHours() + 10); // 한국시간 시차 9시간, 만료 시간 1시간
   } else {
     // 3 - 2) refreshToken 만료되었다면 새로 로그인하도록 throw error.
     throw {

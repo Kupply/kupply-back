@@ -336,7 +336,7 @@ export const uploadResumeToS3 = async (
   const hopeMajor1 = (await Major.findById(user.hopeMajor1)) as IMajor;
 
   const resumeName = `userResume/${hopeMajor1.name}/${Date.now()}_${
-    fileData.originalname
+    user.studentId
   }`;
 
   const uploadObjectParams = {

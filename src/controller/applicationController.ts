@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import * as applicationService from '../service/applicationService';
-import * as userService from '../service/userService'
+import * as userService from '../service/userService';
 
 export const createApplicationData = async (
   req: Request,
@@ -134,6 +134,25 @@ export const landingPageInfo = async (
     res.status(200).send({
       status: 'success',
       data: landingPageInfo,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const myStage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userId = req.userId as Types.ObjectId;
+
+    const myStage = await applicationService.myStage(userId);
+
+    res.status(200).send({
+      status: 'success',
+      data: myStage,
     });
   } catch (err) {
     next(err);
