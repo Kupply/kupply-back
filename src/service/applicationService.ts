@@ -619,44 +619,71 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
   const majorIds = [hopeMajor1._id, hopeMajor2._id];
 
   // 파이 차트 데이터 초기화
-  const initFullChartMap: Map<string, number> = new Map();
+  const initFullChartMap1: Map<string, number> = new Map();
 
   // 산점도 차트 데이터 초기화
-  const initScatterChartMap: Map<
+  const initScatterChartMap1: Map<
     string,
     { curApplyNum: number; curAccumGPA: number }
   > = new Map();
 
   for (const item of majorList) {
     const value2 = item.value2;
-    if (!initFullChartMap.has(value2)) {
-      initFullChartMap.set(value2, 0);
+    if (!initFullChartMap1.has(value2)) {
+      initFullChartMap1.set(value2, 0);
     }
 
-    if (!initScatterChartMap.has(value2)) {
-      initScatterChartMap.set(value2, { curApplyNum: 0, curAccumGPA: 0 });
+    if (!initScatterChartMap1.has(value2)) {
+      initScatterChartMap1.set(value2, { curApplyNum: 0, curAccumGPA: 0 });
     }
   }
 
   // 반 파이 차트 데이터 초기화
-  const initHalfChartMap: Map<string, number> = new Map();
+  const initHalfChartMap1: Map<string, number> = new Map();
   for (let stdIdYear = 23; stdIdYear >= 20; stdIdYear--) {
-    initHalfChartMap.set(stdIdYear.toString(), 0);
+    initHalfChartMap1.set(stdIdYear.toString(), 0);
+  }
+
+  ////////////////////
+  // 파이 차트 데이터 초기화
+  const initFullChartMap2: Map<string, number> = new Map();
+
+  // 산점도 차트 데이터 초기화
+  const initScatterChartMap2: Map<
+    string,
+    { curApplyNum: number; curAccumGPA: number }
+  > = new Map();
+
+  for (const item of majorList) {
+    const value2 = item.value2;
+    if (!initFullChartMap2.has(value2)) {
+      initFullChartMap2.set(value2, 0);
+    }
+
+    if (!initScatterChartMap2.has(value2)) {
+      initScatterChartMap2.set(value2, { curApplyNum: 0, curAccumGPA: 0 });
+    }
+  }
+
+  // 반 파이 차트 데이터 초기화
+  const initHalfChartMap2: Map<string, number> = new Map();
+  for (let stdIdYear = 23; stdIdYear >= 20; stdIdYear--) {
+    initHalfChartMap2.set(stdIdYear.toString(), 0);
   }
 
   // init
   let returnDataMap = [
     {
       curApplyNum: 0,
-      fullChartMap: initFullChartMap,
-      halfChartMap: initHalfChartMap,
-      scatterChartMap: initScatterChartMap,
+      fullChartMap: initFullChartMap1,
+      halfChartMap: initHalfChartMap1,
+      scatterChartMap: initScatterChartMap1,
     },
     {
       curApplyNum: 0,
-      fullChartMap: initFullChartMap,
-      halfChartMap: initHalfChartMap,
-      scatterChartMap: initScatterChartMap,
+      fullChartMap: initFullChartMap2,
+      halfChartMap: initHalfChartMap2,
+      scatterChartMap: initScatterChartMap2,
     },
   ];
 
