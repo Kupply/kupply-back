@@ -691,7 +691,7 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
     const majorId = majorIds[i];
 
     const applications = await Application.find({
-      applyMajor1: majorId,
+      $or: [{ applyMajor1: majorId }, { applyMajor2: majorId }],
       applySemester: currentSemester,
     });
 
@@ -896,7 +896,7 @@ export const myStage = async (userId: Types.ObjectId) => {
 
   for (let i = 0; i < hopeMajors.length; i++) {
     const application = await Application.find({
-      applyMajor1: hopeMajors[i],
+      $or: [{ applyMajor1: hopeMajors[i] }, { applyMajor2: hopeMajors[i] }],
       applySemester: currentSemester,
     });
 
