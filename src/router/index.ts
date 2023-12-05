@@ -6,7 +6,7 @@ import dashboardRouter from './dashboard';
 import postRouter from './postRouter';
 import messageRouter from './messageRouter';
 import pastDataRouter from './pastDataRouter';
-import landingPageRouter from './landingPageRouter'
+import landingPageRouter from './landingPageRouter';
 import * as authController from '../controller/authController';
 
 const router = express.Router();

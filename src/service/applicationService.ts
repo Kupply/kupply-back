@@ -3,6 +3,7 @@ import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import ApplyMetaData from '../models/applicationMetaDataModel';
+import axios from 'axios';
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -881,30 +882,100 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
 };
 
 export const myStage = async (userId: Types.ObjectId) => {
+  // FastAPI에 요청보내서 딥러닝 모델 inference 받아오기
   const user = await User.findById(userId);
-
   if (!user) {
     throw { status: 400, message: 'User not found' };
   }
 
+  const application = await Application.findOne({
+    candidateId: userId,
+    applySemester: currentSemester,
+  });
+  if (!application) {
+    throw { status: 400, message: 'Application not found' };
+  }
+
+  const firstMajor = (await Major.findById(user.firstMajor)) as IMajor;
+  const firstMajorName = firstMajor.name;
+
+  const applyGrade = application.applyGrade;
+  const applyGPA = application.applyGPA;
+  const applyMajor1 = (await Major.findById(application.applyMajor1)) as IMajor;
+  const applyMajor2 = (await Major.findById(application.applyMajor2)) as IMajor;
+  const applyMajor1_Name = applyMajor1.name;
+  const applyMajor2_Name = applyMajor2.name;
+  const applySemester = application.applySemester;
+
+  const applyMajors_Name = [applyMajor1_Name, applyMajor2_Name];
+  const applyMajors = [user.hopeMajor1, user.hopeMajor2];
+
   const returnData: {
+    safe: number;
     applyNum: number;
     rank: number;
   }[] = [];
 
-  const hopeMajors = [user.hopeMajor1, user.hopeMajor2];
+  for (let i = 0; i < 2; i++) {
+    const APIResponse = await axios.post('http://127.0.0.1:8000/predict', {
+      firstMajor: firstMajorName,
+      applyGrade: applyGrade,
+      applyMajor: applyMajors_Name[i],
+      applySemester: applySemester,
+      applyGPA: applyGPA,
+    });
 
-  for (let i = 0; i < hopeMajors.length; i++) {
     const application = await Application.find({
-      $or: [{ applyMajor1: hopeMajors[i] }, { applyMajor2: hopeMajors[i] }],
+      $or: [{ applyMajor1: applyMajors[i] }, { applyMajor2: applyMajors[i] }],
       applySemester: currentSemester,
     });
 
     const applicationGPAs = application.map((app) => app.applyGPA);
     const rank = applicationGPAs.filter((gpa) => gpa > user.curGPA).length + 1;
 
-    returnData.push({ applyNum: applicationGPAs.length, rank: rank });
+    returnData.push({
+      safe: APIResponse.data.result,
+      applyNum: applicationGPAs.length,
+      rank: rank,
+    });
   }
 
   return returnData;
+};
+
+// export const myStage = async (userId: Types.ObjectId) => {
+//   const user = await User.findById(userId);
+
+//   if (!user) {
+//     throw { status: 400, message: 'User not found' };
+//   }
+
+//   const returnData: {
+//     applyNum: number;
+//     rank: number;
+//   }[] = [];
+
+//   const hopeMajors = [user.hopeMajor1, user.hopeMajor2];
+
+//   for (let i = 0; i < hopeMajors.length; i++) {
+//     const application = await Application.find({
+//       $or: [{ applyMajor1: hopeMajors[i] }, { applyMajor2: hopeMajors[i] }],
+//       applySemester: currentSemester,
+//     });
+
+//     const applicationGPAs = application.map((app) => app.applyGPA);
+//     const rank = applicationGPAs.filter((gpa) => gpa > user.curGPA).length + 1;
+
+//     returnData.push({ applyNum: applicationGPAs.length, rank: rank });
+//   }
+
+//   return returnData;
+// };
+
+export const getAllApplicationData = async () => {
+  const applications = await Application.find({ applySemester: '2023-2' })
+    .populate('applyMajor1', 'name')
+    .populate('applyMajor2', 'name');
+
+  return applications;
 };

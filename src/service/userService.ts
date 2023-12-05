@@ -20,7 +20,11 @@ export type updateDataType = {
 export const getAllUsers = async () => {
   const users = await User.find()
     .populate('firstMajor', 'name')
-    .populate('secondMajor', 'name');
+    .populate('secondMajor', 'name')
+    .populate('hopeMajor1', 'name')
+    .populate('hopeMajor2', 'name');
+
+  console.log(users);
 
   return users;
 };

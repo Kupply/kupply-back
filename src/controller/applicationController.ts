@@ -3,6 +3,23 @@ import { Types } from 'mongoose';
 import * as applicationService from '../service/applicationService';
 import * as userService from '../service/userService';
 
+export const getAllApplicationData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const data = await applicationService.getAllApplicationData();
+
+    res.status(201).send({
+      status: 'success',
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const createApplicationData = async (
   req: Request,
   res: Response,

@@ -5,7 +5,8 @@ const router = express.Router();
 
 router.get('/cards', applicationController.getCardData);
 router.post('/', applicationController.createApplicationData);
-router.get('/', applicationController.getApplicationData);
+// router.get('/', applicationController.getApplicationData);
+router.get('/', applicationController.getAllApplicationData);
 router.delete('/', applicationController.deleteApplicationData);
 router.patch('/', applicationController.updateApplicationData);
 router.get(
