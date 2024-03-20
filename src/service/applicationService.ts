@@ -20,8 +20,8 @@ type landingPageInputType = {
   userId: Types.ObjectId | null;
 };
 
-const currentSemester: string = '2024-1';
-const prevSem = '2023-2';
+const currentSemester: string = '2023-2';
+const prevSem = '2023-1';
 
 type cardData = {
   name: string;
