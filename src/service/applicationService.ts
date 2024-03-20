@@ -223,6 +223,241 @@ export const getCardDatas = async () => {
     min: chemistryMin,
   });
 
+  const bioengM = (await Major.findOne({ name: '생명공학부' })) as IMajor;
+  const bioeng = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: bioengM._id,
+    pnp: 'PASS',
+  });
+  let bioengAvg = 0,
+    bioengMin = 4.5;
+  bioeng.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      bioengAvg += item.applyGPA;
+      bioengMin = Math.min(bioengMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '생명과학대학 생명공학부',
+    passNum: bioeng.length,
+    avg: bioengAvg,
+    min: bioengMin,
+  });
+
+  const lifesciM = (await Major.findOne({ name: '생명과학부' })) as IMajor;
+  const lifesci = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: lifesciM._id,
+    pnp: 'PASS',
+  });
+  let lifesciAvg = 0,
+    lifesciMin = 4.5;
+  lifesci.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      lifesciAvg += item.applyGPA;
+      lifesciMin = Math.min(lifesciMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '생명과학대학 생명과학부',
+    passNum: bioeng.length,
+    avg: lifesciAvg,
+    min: lifesciMin,
+  });
+
+  const politicalM = (await Major.findOne({ name: '정치외교학과' })) as IMajor;
+  const political = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: politicalM._id,
+    pnp: 'PASS',
+  });
+  let politicalAvg = 0,
+    politicalMin = 4.5;
+  political.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      politicalAvg += item.applyGPA;
+      politicalMin = Math.min(politicalMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정경대학 정치외교학과',
+    passNum: political.length,
+    avg: politicalAvg,
+    min: politicalMin,
+  });
+
+  const pubadminM = (await Major.findOne({ name: '행정학과' })) as IMajor;
+  const pubadmin = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: pubadminM._id,
+    pnp: 'PASS',
+  });
+  let pubadminAvg = 0,
+    pubadminMin = 4.5;
+  pubadmin.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      pubadminAvg += item.applyGPA;
+      pubadminMin = Math.min(pubadminMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정경대학 행정학과',
+    passNum: pubadmin.length,
+    avg: pubadminAvg,
+    min: pubadminMin,
+  });
+
+  const materialsM = (await Major.findOne({ name: '신소재공학부' })) as IMajor;
+  const materials = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: materialsM._id,
+    pnp: 'PASS',
+  });
+  let materialsAvg = 0,
+    materialsMin = 4.5;
+  materials.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      materialsAvg += item.applyGPA;
+      materialsMin = Math.min(materialsMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '공과대학 신소재공학부',
+    passNum: materials.length,
+    avg: materialsAvg,
+    min: materialsMin,
+  });
+
+  const mechanicalM = (await Major.findOne({ name: '기계공학부' })) as IMajor;
+  const mechanical = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: mechanicalM._id,
+    pnp: 'PASS',
+  });
+  let mechanicalAvg = 0,
+    mechanicalMin = 4.5;
+  mechanical.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      mechanicalAvg += item.applyGPA;
+      mechanicalMin = Math.min(mechanicalMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '공과대학 기계공학부',
+    passNum: mechanical.length,
+    avg: mechanicalAvg,
+    min: mechanicalMin,
+  });
+
+  const industrialM = (await Major.findOne({
+    name: '산업경영공학부',
+  })) as IMajor;
+  const industrial = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: industrialM._id,
+    pnp: 'PASS',
+  });
+  let industrialAvg = 0,
+    industrialMin = 4.5;
+  industrial.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      industrialAvg += item.applyGPA;
+      industrialMin = Math.min(industrialMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '공과대학 산업경영공학부',
+    passNum: industrial.length,
+    avg: industrialAvg,
+    min: industrialMin,
+  });
+
+  const electricalM = (await Major.findOne({
+    name: '전기전자공학부',
+  })) as IMajor;
+  const electrical = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: electricalM._id,
+    pnp: 'PASS',
+  });
+  let electricalAvg = 0,
+    electricalMin = 4.5;
+  electrical.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      electricalAvg += item.applyGPA;
+      electricalMin = Math.min(electricalMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '공과대학 전기전자공학부',
+    passNum: electrical.length,
+    avg: electricalAvg,
+    min: electricalMin,
+  });
+
+  const chembioM = (await Major.findOne({ name: '화공생명공학부' })) as IMajor;
+  const chembio = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: chembioM._id,
+    pnp: 'PASS',
+  });
+  let chembioAvg = 0,
+    chembioMin = 4.5;
+  chembio.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      chembioAvg += item.applyGPA;
+      chembioMin = Math.min(chembioMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '공과대학 화공생명공학부',
+    passNum: chembio.length,
+    avg: chembioAvg,
+    min: chembioMin,
+  });
+
+  const datasciM = (await Major.findOne({ name: '데이터과학과' })) as IMajor;
+  const datasci = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: datasciM._id,
+    pnp: 'PASS',
+  });
+  let datasciAvg = 0,
+    datasciMin = 4.5;
+  datasci.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      datasciAvg += item.applyGPA;
+      datasciMin = Math.min(datasciMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '정보대학 데이터과학과',
+    passNum: datasci.length,
+    avg: datasciAvg,
+    min: datasciMin,
+  });
+
+  const smartsecM = (await Major.findOne({ name: '스마트보안학부' })) as IMajor;
+  const smartsec = await Application.find({
+    applySemester: prevSem,
+    applyMajor1: smartsecM._id,
+    pnp: 'PASS',
+  });
+  let smartsecAvg = 0,
+    smartsecMin = 4.5;
+  smartsec.forEach((item) => {
+    if (item.pnp === 'PASS') {
+      smartsecAvg += item.applyGPA;
+      smartsecMin = Math.min(smartsecMin, item.applyGPA);
+    }
+  });
+  result.push({
+    name: '스마트보안학부 스마트보안학부',
+    passNum: smartsec.length,
+    avg: smartsecAvg,
+    min: smartsecMin,
+  });
+
   return result;
 };
 
