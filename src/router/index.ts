@@ -6,8 +6,9 @@ import dashboardRouter from './dashboard';
 import postRouter from './postRouter';
 import messageRouter from './messageRouter';
 import pastDataRouter from './pastDataRouter';
-import landingPageRouter from './landingPageRouter'
+import landingPageRouter from './landingPageRouter';
 import * as authController from '../controller/authController';
+import * as applicationController from '../controller/applicationController';
 
 const router = express.Router();
 
@@ -18,8 +19,8 @@ router.get('/', (req, res) => {
 });
 
 router.use('/landing', landingPageRouter);
+router.get('/dashboard/cards', applicationController.getCardData);
 
-// FIXME: 나중에 적절한 위치로 수정
 router.use(authController.protect);
 
 router.use('/user', userRouter);
