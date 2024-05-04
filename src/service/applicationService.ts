@@ -518,6 +518,7 @@ export const createApplicationData = async (
       }
 
       user.isApplied = true;
+      user.curGPA = +applyData.applyGPA;
       await user.save();
 
       return newApplication;
