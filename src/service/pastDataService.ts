@@ -230,6 +230,12 @@ export const getPastDataByMajorAndSemester = async (
   if (semester === 'all') {
     majorApplyData_semester = await Application.find({
       applyMajor1: majorData._id,
+      $or: [
+        { applySemester: '2023-2' },
+        { applySemester: '2023-1' },
+        { applySemester: '2022-2' },
+        { applySemester: '2022-1' },
+      ],
     });
   } else {
     majorApplyData_semester = await Application.find({
