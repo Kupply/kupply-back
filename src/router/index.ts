@@ -18,11 +18,9 @@ router.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-router.use('/landing', landingPageRouter);
-router.get('/dashboard/cards', applicationController.getCardData);
-
 router.use(authController.protect);
 
+router.use('/landing', landingPageRouter);
 router.use('/user', userRouter);
 router.use('/post', postRouter);
 router.use('/dashboard', dashboardRouter);

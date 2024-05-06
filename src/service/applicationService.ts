@@ -25,6 +25,7 @@ const prevSem = '2023-2';
 
 type cardData = {
   name: string;
+  applyNum: number;
   passNum: number;
   avg: number;
   min: number;
@@ -36,19 +37,21 @@ export const getCardDatas = async () => {
   const business = await Application.find({
     applySemester: prevSem,
     applyMajor1: businessM._id,
-    pnp: 'PASS',
   });
   let busAvg = 0,
-    busMin = 4.5;
+    busMin = 4.5,
+    busPassNum = 0;
   business.forEach((item) => {
     if (item.pnp === 'PASS') {
       busAvg += item.applyGPA;
       busMin = Math.min(busMin, item.applyGPA);
+      busPassNum++;
     }
   });
   result.push({
     name: '경영대학 경영학과',
-    passNum: business.length,
+    applyNum: business.length,
+    passNum: busPassNum,
     avg: busAvg,
     min: busMin,
   });
@@ -57,19 +60,21 @@ export const getCardDatas = async () => {
   const computer = await Application.find({
     applySemester: prevSem,
     applyMajor1: computerM._id,
-    pnp: 'PASS',
   });
   let compAvg = 0,
-    compMin = 4.5;
+    compMin = 4.5,
+    compPassNum = 0;
   computer.forEach((item) => {
     if (item.pnp === 'PASS') {
       compAvg += item.applyGPA;
       compMin = Math.min(compMin, item.applyGPA);
+      compPassNum++;
     }
   });
   result.push({
     name: '정보대학 컴퓨터학과',
-    passNum: computer.length,
+    applyNum: computer.length,
+    passNum: compPassNum,
     avg: compAvg,
     min: compMin,
   });
@@ -78,19 +83,21 @@ export const getCardDatas = async () => {
   const psycho = await Application.find({
     applySemester: prevSem,
     applyMajor1: psychoM._id,
-    pnp: 'PASS',
   });
   let psychoAvg = 0,
-    psychoMin = 4.5;
+    psychoMin = 4.5,
+    psychoPassNum = 0;
   psycho.forEach((item) => {
     if (item.pnp === 'PASS') {
       psychoAvg += item.applyGPA;
       psychoMin = Math.min(psychoMin, item.applyGPA);
+      psychoPassNum++;
     }
   });
   result.push({
     name: '심리학부',
-    passNum: psycho.length,
+    applyNum: psycho.length,
+    passNum: psychoPassNum,
     avg: psychoAvg,
     min: psychoMin,
   });
@@ -99,19 +106,21 @@ export const getCardDatas = async () => {
   const economy = await Application.find({
     applySemester: prevSem,
     applyMajor1: economyM._id,
-    pnp: 'PASS',
   });
   let economyAvg = 0,
-    economyMin = 4.5;
+    economyMin = 4.5,
+    economyPassNum = 0;
   economy.forEach((item) => {
     if (item.pnp === 'PASS') {
       economyAvg += item.applyGPA;
       economyMin = Math.min(economyMin, item.applyGPA);
+      economyPassNum++;
     }
   });
   result.push({
     name: '정경대학 경제학과',
-    passNum: economy.length,
+    applyNum: economy.length,
+    passNum: economyPassNum,
     avg: economyAvg,
     min: economyMin,
   });
@@ -120,19 +129,21 @@ export const getCardDatas = async () => {
   const stats = await Application.find({
     applySemester: prevSem,
     applyMajor1: statsM._id,
-    pnp: 'PASS',
   });
   let statsAvg = 0,
-    statsMin = 4.5;
+    statsMin = 4.5,
+    statsPassNum = 0;
   stats.forEach((item) => {
     if (item.pnp === 'PASS') {
       statsAvg += item.applyGPA;
       statsMin = Math.min(statsMin, item.applyGPA);
+      statsPassNum++;
     }
   });
   result.push({
     name: '정경대학 통계학과',
-    passNum: stats.length,
+    applyNum: stats.length,
+    passNum: statsPassNum,
     avg: statsAvg,
     min: statsMin,
   });
@@ -141,19 +152,21 @@ export const getCardDatas = async () => {
   const media = await Application.find({
     applySemester: prevSem,
     applyMajor1: mediaM._id,
-    pnp: 'PASS',
   });
   let mediaAvg = 0,
-    mediaMin = 4.5;
+    mediaMin = 4.5,
+    mediaPassNum = 0;
   media.forEach((item) => {
     if (item.pnp === 'PASS') {
       mediaAvg += item.applyGPA;
       mediaMin = Math.min(mediaMin, item.applyGPA);
+      mediaPassNum++;
     }
   });
   result.push({
     name: '미디어학부',
-    passNum: media.length,
+    applyNum: media.length,
+    passNum: mediaPassNum,
     avg: mediaAvg,
     min: mediaMin,
   });
@@ -164,19 +177,21 @@ export const getCardDatas = async () => {
   const sigjakyung = await Application.find({
     applySemester: prevSem,
     applyMajor1: sigjakyungM._id,
-    pnp: 'PASS',
   });
   let sigjakyungAvg = 0,
-    sigjakyungMin = 4.5;
+    sigjakyungMin = 4.5,
+    sigjakyungPassNum = 0;
   sigjakyung.forEach((item) => {
     if (item.pnp === 'PASS') {
       sigjakyungAvg += item.applyGPA;
       sigjakyungMin = Math.min(sigjakyungMin, item.applyGPA);
+      sigjakyungPassNum++;
     }
   });
   result.push({
     name: '생명과학대학 식품자원경제학과',
-    passNum: sigjakyung.length,
+    applyNum: sigjakyung.length,
+    passNum: sigjakyungPassNum,
     avg: sigjakyungAvg,
     min: sigjakyungMin,
   });
@@ -185,19 +200,21 @@ export const getCardDatas = async () => {
   const mathematics = await Application.find({
     applySemester: prevSem,
     applyMajor1: mathematicsM._id,
-    pnp: 'PASS',
   });
   let mathematicsAvg = 0,
-    mathematicsMin = 4.5;
+    mathematicsMin = 4.5,
+    mathematicsPassNum = 0;
   mathematics.forEach((item) => {
     if (item.pnp === 'PASS') {
       mathematicsAvg += item.applyGPA;
       mathematicsMin = Math.min(mathematicsMin, item.applyGPA);
+      mathematicsPassNum++;
     }
   });
   result.push({
     name: '이과대학 수학과',
-    passNum: mathematics.length,
+    applyNum: mathematics.length,
+    passNum: mathematicsPassNum,
     avg: mathematicsAvg,
     min: mathematicsMin,
   });
@@ -206,19 +223,21 @@ export const getCardDatas = async () => {
   const chemistry = await Application.find({
     applySemester: prevSem,
     applyMajor1: chemistryM._id,
-    pnp: 'PASS',
   });
   let chemistryAvg = 0,
-    chemistryMin = 4.5;
+    chemistryMin = 4.5,
+    chemistryPassNum = 0;
   chemistry.forEach((item) => {
     if (item.pnp === 'PASS') {
       chemistryAvg += item.applyGPA;
       chemistryMin = Math.min(chemistryMin, item.applyGPA);
+      chemistryPassNum++;
     }
   });
   result.push({
     name: '이과대학 화학과',
-    passNum: chemistry.length,
+    applyNum: chemistry.length,
+    passNum: chemistryPassNum,
     avg: chemistryAvg,
     min: chemistryMin,
   });
@@ -227,19 +246,21 @@ export const getCardDatas = async () => {
   const bioeng = await Application.find({
     applySemester: prevSem,
     applyMajor1: bioengM._id,
-    pnp: 'PASS',
   });
   let bioengAvg = 0,
-    bioengMin = 4.5;
+    bioengMin = 4.5,
+    bioengPassNum = 0;
   bioeng.forEach((item) => {
     if (item.pnp === 'PASS') {
       bioengAvg += item.applyGPA;
       bioengMin = Math.min(bioengMin, item.applyGPA);
+      bioengPassNum++;
     }
   });
   result.push({
     name: '생명과학대학 생명공학부',
-    passNum: bioeng.length,
+    applyNum: bioeng.length,
+    passNum: bioengPassNum,
     avg: bioengAvg,
     min: bioengMin,
   });
@@ -248,19 +269,21 @@ export const getCardDatas = async () => {
   const lifesci = await Application.find({
     applySemester: prevSem,
     applyMajor1: lifesciM._id,
-    pnp: 'PASS',
   });
   let lifesciAvg = 0,
-    lifesciMin = 4.5;
+    lifesciMin = 4.5,
+    lifesciPassNum = 0;
   lifesci.forEach((item) => {
     if (item.pnp === 'PASS') {
       lifesciAvg += item.applyGPA;
       lifesciMin = Math.min(lifesciMin, item.applyGPA);
+      lifesciPassNum++;
     }
   });
   result.push({
     name: '생명과학대학 생명과학부',
-    passNum: bioeng.length,
+    applyNum: lifesci.length,
+    passNum: lifesciPassNum,
     avg: lifesciAvg,
     min: lifesciMin,
   });
@@ -269,19 +292,21 @@ export const getCardDatas = async () => {
   const political = await Application.find({
     applySemester: prevSem,
     applyMajor1: politicalM._id,
-    pnp: 'PASS',
   });
   let politicalAvg = 0,
-    politicalMin = 4.5;
+    politicalMin = 4.5,
+    politicalPassNum = 0;
   political.forEach((item) => {
     if (item.pnp === 'PASS') {
       politicalAvg += item.applyGPA;
       politicalMin = Math.min(politicalMin, item.applyGPA);
+      politicalPassNum++;
     }
   });
   result.push({
     name: '정경대학 정치외교학과',
-    passNum: political.length,
+    applyNum: political.length,
+    passNum: politicalPassNum,
     avg: politicalAvg,
     min: politicalMin,
   });
@@ -290,19 +315,21 @@ export const getCardDatas = async () => {
   const pubadmin = await Application.find({
     applySemester: prevSem,
     applyMajor1: pubadminM._id,
-    pnp: 'PASS',
   });
   let pubadminAvg = 0,
-    pubadminMin = 4.5;
+    pubadminMin = 4.5,
+    pubadminPassNum = 0;
   pubadmin.forEach((item) => {
     if (item.pnp === 'PASS') {
       pubadminAvg += item.applyGPA;
       pubadminMin = Math.min(pubadminMin, item.applyGPA);
+      pubadminPassNum++;
     }
   });
   result.push({
     name: '정경대학 행정학과',
-    passNum: pubadmin.length,
+    applyNum: pubadmin.length,
+    passNum: pubadminPassNum,
     avg: pubadminAvg,
     min: pubadminMin,
   });
@@ -311,19 +338,21 @@ export const getCardDatas = async () => {
   const materials = await Application.find({
     applySemester: prevSem,
     applyMajor1: materialsM._id,
-    pnp: 'PASS',
   });
   let materialsAvg = 0,
-    materialsMin = 4.5;
+    materialsMin = 4.5,
+    materialsPassNum = 0;
   materials.forEach((item) => {
     if (item.pnp === 'PASS') {
       materialsAvg += item.applyGPA;
       materialsMin = Math.min(materialsMin, item.applyGPA);
+      materialsPassNum++;
     }
   });
   result.push({
     name: '공과대학 신소재공학부',
-    passNum: materials.length,
+    applyNum: materials.length,
+    passNum: materialsPassNum,
     avg: materialsAvg,
     min: materialsMin,
   });
@@ -332,19 +361,21 @@ export const getCardDatas = async () => {
   const mechanical = await Application.find({
     applySemester: prevSem,
     applyMajor1: mechanicalM._id,
-    pnp: 'PASS',
   });
   let mechanicalAvg = 0,
-    mechanicalMin = 4.5;
+    mechanicalMin = 4.5,
+    mechanicalPassNum = 0;
   mechanical.forEach((item) => {
     if (item.pnp === 'PASS') {
       mechanicalAvg += item.applyGPA;
       mechanicalMin = Math.min(mechanicalMin, item.applyGPA);
+      mechanicalPassNum++;
     }
   });
   result.push({
     name: '공과대학 기계공학부',
-    passNum: mechanical.length,
+    applyNum: mechanical.length,
+    passNum: mechanicalPassNum,
     avg: mechanicalAvg,
     min: mechanicalMin,
   });
@@ -355,19 +386,21 @@ export const getCardDatas = async () => {
   const industrial = await Application.find({
     applySemester: prevSem,
     applyMajor1: industrialM._id,
-    pnp: 'PASS',
   });
   let industrialAvg = 0,
-    industrialMin = 4.5;
+    industrialMin = 4.5,
+    industrialPassNum = 0;
   industrial.forEach((item) => {
     if (item.pnp === 'PASS') {
       industrialAvg += item.applyGPA;
       industrialMin = Math.min(industrialMin, item.applyGPA);
+      industrialPassNum++;
     }
   });
   result.push({
     name: '공과대학 산업경영공학부',
-    passNum: industrial.length,
+    applyNum: industrial.length,
+    passNum: industrialPassNum,
     avg: industrialAvg,
     min: industrialMin,
   });
@@ -378,19 +411,21 @@ export const getCardDatas = async () => {
   const electrical = await Application.find({
     applySemester: prevSem,
     applyMajor1: electricalM._id,
-    pnp: 'PASS',
   });
   let electricalAvg = 0,
-    electricalMin = 4.5;
+    electricalMin = 4.5,
+    electricalPassNum = 0;
   electrical.forEach((item) => {
     if (item.pnp === 'PASS') {
       electricalAvg += item.applyGPA;
       electricalMin = Math.min(electricalMin, item.applyGPA);
+      electricalPassNum++;
     }
   });
   result.push({
     name: '공과대학 전기전자공학부',
-    passNum: electrical.length,
+    applyNum: electrical.length,
+    passNum: electricalPassNum,
     avg: electricalAvg,
     min: electricalMin,
   });
@@ -399,19 +434,21 @@ export const getCardDatas = async () => {
   const chembio = await Application.find({
     applySemester: prevSem,
     applyMajor1: chembioM._id,
-    pnp: 'PASS',
   });
   let chembioAvg = 0,
-    chembioMin = 4.5;
+    chembioMin = 4.5,
+    chembioPassNum = 0;
   chembio.forEach((item) => {
     if (item.pnp === 'PASS') {
       chembioAvg += item.applyGPA;
       chembioMin = Math.min(chembioMin, item.applyGPA);
+      chembioPassNum++;
     }
   });
   result.push({
     name: '공과대학 화공생명공학부',
-    passNum: chembio.length,
+    applyNum: chembio.length,
+    passNum: chembioPassNum,
     avg: chembioAvg,
     min: chembioMin,
   });
@@ -420,19 +457,21 @@ export const getCardDatas = async () => {
   const datasci = await Application.find({
     applySemester: prevSem,
     applyMajor1: datasciM._id,
-    pnp: 'PASS',
   });
   let datasciAvg = 0,
-    datasciMin = 4.5;
+    datasciMin = 4.5,
+    datasciPassNum = 0;
   datasci.forEach((item) => {
     if (item.pnp === 'PASS') {
       datasciAvg += item.applyGPA;
       datasciMin = Math.min(datasciMin, item.applyGPA);
+      datasciPassNum++;
     }
   });
   result.push({
     name: '정보대학 데이터과학과',
-    passNum: datasci.length,
+    applyNum: datasci.length,
+    passNum: datasciPassNum,
     avg: datasciAvg,
     min: datasciMin,
   });
@@ -441,19 +480,21 @@ export const getCardDatas = async () => {
   const smartsec = await Application.find({
     applySemester: prevSem,
     applyMajor1: smartsecM._id,
-    pnp: 'PASS',
   });
   let smartsecAvg = 0,
-    smartsecMin = 4.5;
+    smartsecMin = 4.5,
+    smartsecPassNum = 0;
   smartsec.forEach((item) => {
     if (item.pnp === 'PASS') {
       smartsecAvg += item.applyGPA;
       smartsecMin = Math.min(smartsecMin, item.applyGPA);
+      smartsecPassNum++;
     }
   });
   result.push({
     name: '스마트보안학부 스마트보안학부',
-    passNum: smartsec.length,
+    applyNum: smartsec.length,
+    passNum: smartsecPassNum,
     avg: smartsecAvg,
     min: smartsecMin,
   });
