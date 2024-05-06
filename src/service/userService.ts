@@ -163,12 +163,7 @@ export const updateMe = async (
   }
 
   if (updateData.newNickname && updateData.newNickname !== user.nickname) {
-    const tmpUser = await User.findOne({ nickname: updateData.newNickname });
-    if (tmpUser) {
-      throw { status: 400, message: '이미 사용중인 닉네임입니다.' };
-    } else {
-      user.nickname = updateData.newNickname;
-    }
+    user.nickname = updateData.newNickname;
   }
 
   if (updateData.newHopeMajor1 && user.role === 'candidate') {
