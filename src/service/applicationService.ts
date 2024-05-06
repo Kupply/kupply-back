@@ -1125,16 +1125,17 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
         competition: Number(
           (metadata.appliedNumber / metadata.recruitNumber).toFixed(2),
         ),
-        pastCompetition:
+        pastPassedRate:
           pastmetadata &&
           pastmetadata.appliedNumber &&
-          pastmetadata.recruitNumber
+          pastmetadata.passedNumber
             ? Number(
                 (
-                  pastmetadata.appliedNumber / pastmetadata.recruitNumber
+                  (pastmetadata.passedNumber / pastmetadata.appliedNumber) *
+                  100
                 ).toFixed(2),
               )
-            : 0,
+            : -1,
         pastmean: pastmetadata?.passedGPAavg,
         pastmin: pastmetadata?.passedGPAmin,
         pastPassedNum: pastPassedApplications.length,
