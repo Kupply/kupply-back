@@ -69,7 +69,6 @@ const userSchema = new Schema<IUser>(
     nickname: {
       type: String,
       required: [true, 'User must have a nickname.'],
-      unique: true,
       trim: true,
     },
     role: {
