@@ -1100,9 +1100,13 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
 
       let interestedNum = 0;
       if (userData) {
-        if (userData.hopeMajor1.toString() === metadata.major.toString()) {
+        if (
+          userData.hopeMajor1 &&
+          userData.hopeMajor1.toString() === metadata.major.toString()
+        ) {
           interestedNum = 1;
         } else if (
+          userData.hopeMajor2 &&
           userData.hopeMajor2.toString() === metadata.major.toString()
         ) {
           interestedNum = 2;
