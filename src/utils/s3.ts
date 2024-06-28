@@ -24,7 +24,7 @@ export const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-export const getFileFromS3 = async (getObjectParams: { Key: string }) => {
+export const getURLFromS3 = async (getObjectParams: { Key: string }) => {
   const command = new GetObjectCommand({
     ...getObjectParams,
     Bucket: bucketName,
