@@ -7,6 +7,7 @@ import postRouter from './postRouter';
 import messageRouter from './messageRouter';
 import pastDataRouter from './pastDataRouter';
 import landingPageRouter from './landingPageRouter';
+import adminRouter from './adminRouter';
 import * as authController from '../controller/authController';
 import * as applicationController from '../controller/applicationController';
 
@@ -20,6 +21,7 @@ router.get('/', (req, res) => {
 
 router.use(authController.protect);
 
+router.use('/admin', adminRouter);
 router.use('/landing', landingPageRouter);
 router.use('/user', userRouter);
 router.use('/post', postRouter);
