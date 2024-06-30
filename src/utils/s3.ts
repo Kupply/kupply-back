@@ -35,6 +35,34 @@ export const getURLFromS3 = async (getObjectParams: { Key: string }) => {
   return url;
 };
 
+export const getJSONFromS3 = async (getObjectParams: { Key: string }) => {
+  try {
+    const command = new GetObjectCommand({
+      ...getObjectParams,
+      Bucket: bucketName,
+    });
+
+    const response = await s3.send(command);
+
+    if (!response.Body) {
+      throw new Error('Response body is undefined');
+    }
+
+    const stringData = await response.Body.transformToString();
+
+    if (!stringData) {
+      throw new Error('Failed to transform body to string');
+    }
+
+    const jsonData = JSON.parse(stringData);
+
+    return jsonData;
+  } catch (error) {
+    console.error('Error fetching file from S3:', error);
+    throw error;
+  }
+};
+
 export const uploadFileToS3 = async (uploadObjectParams: {
   Key: string;
   Body: Buffer;
