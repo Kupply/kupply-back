@@ -64,7 +64,7 @@ export const getMe = async (userId: Types.ObjectId) => {
 
   let profileLink: string = '';
   if (user.profilePic === 'customProfile' && user.profileName) {
-    profileLink = await s3.getFileFromS3({ Key: user.profileName });
+    profileLink = await s3.getURLFromS3({ Key: user.profileName });
   }
 
   if (user.role === 'candidate') {
@@ -281,7 +281,7 @@ export const getProfileFromS3 = async (userId: Types.ObjectId) => {
     };
   }
 
-  const imageUrl = await s3.getFileFromS3({ Key: user.profileName });
+  const imageUrl = await s3.getURLFromS3({ Key: user.profileName });
 
   return imageUrl;
 };
@@ -314,7 +314,7 @@ export const uploadProfileToS3 = async (
   user.profileName = profileName;
   await user.save();
 
-  const imageUrl = await s3.getFileFromS3({ Key: profileName });
+  const imageUrl = await s3.getURLFromS3({ Key: profileName });
 
   return imageUrl;
 };
