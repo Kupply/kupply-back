@@ -1,13 +1,14 @@
 import { NextFunction, Request, Response } from 'express';
 import * as adminService from '../service/adminService';
 
-export const update = async (
+export const updateApplication = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const { passCount, failCount } = await adminService.update();
+    const { passCount, failCount, totalCount } =
+      await adminService.updateApplication();
 
     res.status(200).json({
       status: 'success',
@@ -15,6 +16,7 @@ export const update = async (
         message: `지원 정보 갱신이 성공적으로 완료되었습니다.`,
         passCount,
         failCount,
+        totalCount,
       },
     });
   } catch (err) {

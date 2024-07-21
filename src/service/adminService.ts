@@ -4,23 +4,31 @@ import Application from '../models/applicationModel';
 import * as s3 from '../utils/s3';
 import * as semester from '../utils/semester';
 
-export const update = async () => {
+export const updateApplication = async () => {
   // 포털에 올라오는 2024년도 2학기 이중전공자 합격자 명단은 2024년도 1학기에 이중 '지원'한 사람들 중 합격한 사람들이다.
   // 서비스 모의지원의 경우, 모의지원 데이터의 'applySemester'의 값이 2024-1인 사람들이다.
   // 이중전공자 합격자 명단이 올라와서 이 API를 호출하는 시점은 2024년도 1학기이다. (매년 7월, 1월에 합격자 명단이 발표될 때)
   const currentSemester = semester.getCurrentSemester(); // 이중 '지원'한 학기, 합격자 명단이 올라온 학기, 서비스 데이터에 저장되는 학기
-  const nextSemester = semester.getNextSemester(); // 이중 '진입'하는 학기, 포털에 올라오는 합격자 명단의 학기
+  const nextSemester = semester.getNextSemester();
+  // 이중 '진입'하는 학기, 포털에 올라오는 합격자 명단의 학기
+  // => 합격자 명단의 파일 명을 쿠플라이 서비스에 맞춰 현재학기(= 지원한 학기)로 한다.
 
   // 모의지원자들 중 합격자 수, 불합격자(합격자 리스트에 없는 사람들) 수
   let passCount = 0,
-    failCount = 0;
+    failCount = 0,
+    totalCount = 0;
 
   // 합격자 처리
   const passers = await s3.getJSONFromS3({
-    Key: `passers/${nextSemester}.json`,
+    Key: `passers/${currentSemester}.json`,
   });
 
+  console.log('Get passers from s3 Success');
+
   for (const passer of passers) {
+    // 0. 데이터 수 세기
+    totalCount += 1;
+
     // 1. 일치하는 사용자 찾기
     const studentIdRegex = new RegExp(
       `^${passer['학번'].replace(/\*/g, '.*')}$`,
@@ -33,13 +41,18 @@ export const update = async () => {
     });
 
     if (users.length === 0) {
-      console.log('일치하는 사용자가 없습니다.');
+      console.log('일치하는 사용자가 없습니다.\n', passer);
       continue;
     }
 
-    const secondMajor = (await Major.findOne({
+    const secondMajor = await Major.findOne({
       name: passer['이중전공학과'],
-    })) as IMajor;
+    });
+
+    if (!secondMajor) {
+      console.log('이중전공 학과가 존재하지 않습니다.\n', passer);
+      continue;
+    }
 
     let user = users[0];
 
@@ -68,12 +81,12 @@ export const update = async () => {
     });
 
     if (!application) {
-      console.log('이번 학기 지원 정보가 없습니다.');
+      console.log('이번 학기 지원 정보가 없습니다.\n', passer);
       continue;
     }
 
     if (application.applyMajor1.toString() !== secondMajor._id.toString()) {
-      console.log('이중전공 학과가 일치하지 않습니다.');
+      console.log('이중전공 학과가 일치하지 않습니다.\n', passer, application);
       continue;
     }
 
@@ -103,30 +116,32 @@ export const update = async () => {
 
     await user.save();
     await application.save();
+
+    console.log('Update Success\n', passer, user);
   }
 
   // 불합격자 처리 - 합격자 처리 후 남은 모의지원자들은 불합격자로 처리
   // FIXME: 지금은 데이터 건들면 안 되니 주석 처리
-  // const users = await User.find({ isApplied: true });
+  const users = await User.find({ isApplied: true });
 
-  // for (const user of users) {
-  //   // 1. 사용자 모의 지원 정보 초기화
-  //   user.isApplied = false;
-  //   await user.save();
+  for (const user of users) {
+    // 1. 사용자 모의 지원 정보 초기화
+    user.isApplied = false;
+    await user.save();
 
-  //   // 2. 모의 지원 정보 불합격으로 변경
-  //   const application = await Application.findOne({
-  //     candidateId: user._id,
-  //     applySemester: currentSemester,
-  //   });
+    // 2. 모의 지원 정보 불합격으로 변경
+    const application = await Application.findOne({
+      candidateId: user._id,
+      applySemester: currentSemester,
+    });
 
-  //   application!.pnp = 'FAIL';
-  //   failCount += 1;
+    application!.pnp = 'FAIL';
+    failCount += 1;
 
-  //   await application!.save();
+    await application!.save();
 
-  //   failCount += 1;
-  // }
+    failCount += 1;
+  }
 
-  return { passCount, failCount };
+  return { passCount, failCount, totalCount };
 };

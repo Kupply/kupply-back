@@ -3,6 +3,6 @@ import * as adminController from '../controller/adminController';
 
 const router = express.Router();
 
-router.get('/update', adminController.update);
+router.get('/updateApplication', adminController.updateApplication);
 
 export default router;
