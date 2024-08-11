@@ -446,7 +446,7 @@ export const getCardDatas = async () => {
     }
   });
   result.push({
-    name: '공과대학 화공생명공학부',
+    name: '공과대학 화공생명공학과',
     applyNum: chembio.length,
     passNum: chembioPassNum,
     avg: chembioAvg,
