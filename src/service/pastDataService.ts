@@ -172,7 +172,7 @@ const majorNameMapping = {
   mechanical: '기계공학부',
   industrial: '산업경영공학부',
   electrical: '전기전자공학부',
-  chembio: '화공생명공학부',
+  chembio: '화공생명공학과',
   datasci: '데이터과학과',
   smartsec: '스마트보안학부',
 };
