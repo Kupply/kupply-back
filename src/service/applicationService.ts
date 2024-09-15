@@ -3,6 +3,7 @@ import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import ApplyMetaData from '../models/applicationMetaDataModel';
+import { getCurrentSemester, getPrevSemester } from '../utils/semester';
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -20,10 +21,11 @@ type landingPageInputType = {
   userId: Types.ObjectId | null;
 };
 
-const currentSemester: string = '2024-1';
-const prevSem = '2023-2';
+const currentSemester: string = getCurrentSemester();
+const prevSemester: string = getPrevSemester();
 
 type cardData = {
+  semester: string;
   name: string;
   applyNum: number;
   passNum: number;
@@ -35,7 +37,7 @@ export const getCardDatas = async () => {
 
   const businessM = (await Major.findOne({ name: '경영학과' })) as IMajor;
   const business = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: businessM._id,
   });
   let busAvg = 0,
@@ -54,11 +56,12 @@ export const getCardDatas = async () => {
     passNum: busPassNum,
     avg: busAvg,
     min: busMin,
+    semester: prevSemester,
   });
 
   const computerM = (await Major.findOne({ name: '컴퓨터학과' })) as IMajor;
   const computer = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: computerM._id,
   });
   let compAvg = 0,
@@ -77,11 +80,12 @@ export const getCardDatas = async () => {
     passNum: compPassNum,
     avg: compAvg,
     min: compMin,
+    semester: prevSemester,
   });
 
   const psychoM = (await Major.findOne({ name: '심리학부' })) as IMajor;
   const psycho = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: psychoM._id,
   });
   let psychoAvg = 0,
@@ -100,11 +104,12 @@ export const getCardDatas = async () => {
     passNum: psychoPassNum,
     avg: psychoAvg,
     min: psychoMin,
+    semester: prevSemester,
   });
 
   const economyM = (await Major.findOne({ name: '경제학과' })) as IMajor;
   const economy = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: economyM._id,
   });
   let economyAvg = 0,
@@ -123,11 +128,12 @@ export const getCardDatas = async () => {
     passNum: economyPassNum,
     avg: economyAvg,
     min: economyMin,
+    semester: prevSemester,
   });
 
   const statsM = (await Major.findOne({ name: '통계학과' })) as IMajor;
   const stats = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: statsM._id,
   });
   let statsAvg = 0,
@@ -146,11 +152,12 @@ export const getCardDatas = async () => {
     passNum: statsPassNum,
     avg: statsAvg,
     min: statsMin,
+    semester: prevSemester,
   });
 
   const mediaM = (await Major.findOne({ name: '미디어학부' })) as IMajor;
   const media = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: mediaM._id,
   });
   let mediaAvg = 0,
@@ -169,13 +176,14 @@ export const getCardDatas = async () => {
     passNum: mediaPassNum,
     avg: mediaAvg,
     min: mediaMin,
+    semester: prevSemester,
   });
 
   const sigjakyungM = (await Major.findOne({
     name: '식품자원경제학과',
   })) as IMajor;
   const sigjakyung = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: sigjakyungM._id,
   });
   let sigjakyungAvg = 0,
@@ -194,11 +202,12 @@ export const getCardDatas = async () => {
     passNum: sigjakyungPassNum,
     avg: sigjakyungAvg,
     min: sigjakyungMin,
+    semester: prevSemester,
   });
 
   const mathematicsM = (await Major.findOne({ name: '수학과' })) as IMajor;
   const mathematics = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: mathematicsM._id,
   });
   let mathematicsAvg = 0,
@@ -217,11 +226,12 @@ export const getCardDatas = async () => {
     passNum: mathematicsPassNum,
     avg: mathematicsAvg,
     min: mathematicsMin,
+    semester: prevSemester,
   });
 
   const chemistryM = (await Major.findOne({ name: '화학과' })) as IMajor;
   const chemistry = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: chemistryM._id,
   });
   let chemistryAvg = 0,
@@ -240,11 +250,12 @@ export const getCardDatas = async () => {
     passNum: chemistryPassNum,
     avg: chemistryAvg,
     min: chemistryMin,
+    semester: prevSemester,
   });
 
   const bioengM = (await Major.findOne({ name: '생명공학부' })) as IMajor;
   const bioeng = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: bioengM._id,
   });
   let bioengAvg = 0,
@@ -263,11 +274,12 @@ export const getCardDatas = async () => {
     passNum: bioengPassNum,
     avg: bioengAvg,
     min: bioengMin,
+    semester: prevSemester,
   });
 
   const lifesciM = (await Major.findOne({ name: '생명과학부' })) as IMajor;
   const lifesci = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: lifesciM._id,
   });
   let lifesciAvg = 0,
@@ -286,11 +298,12 @@ export const getCardDatas = async () => {
     passNum: lifesciPassNum,
     avg: lifesciAvg,
     min: lifesciMin,
+    semester: prevSemester,
   });
 
   const politicalM = (await Major.findOne({ name: '정치외교학과' })) as IMajor;
   const political = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: politicalM._id,
   });
   let politicalAvg = 0,
@@ -309,11 +322,12 @@ export const getCardDatas = async () => {
     passNum: politicalPassNum,
     avg: politicalAvg,
     min: politicalMin,
+    semester: prevSemester,
   });
 
   const pubadminM = (await Major.findOne({ name: '행정학과' })) as IMajor;
   const pubadmin = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: pubadminM._id,
   });
   let pubadminAvg = 0,
@@ -332,11 +346,12 @@ export const getCardDatas = async () => {
     passNum: pubadminPassNum,
     avg: pubadminAvg,
     min: pubadminMin,
+    semester: prevSemester,
   });
 
   const materialsM = (await Major.findOne({ name: '신소재공학부' })) as IMajor;
   const materials = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: materialsM._id,
   });
   let materialsAvg = 0,
@@ -355,11 +370,12 @@ export const getCardDatas = async () => {
     passNum: materialsPassNum,
     avg: materialsAvg,
     min: materialsMin,
+    semester: prevSemester,
   });
 
   const mechanicalM = (await Major.findOne({ name: '기계공학부' })) as IMajor;
   const mechanical = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: mechanicalM._id,
   });
   let mechanicalAvg = 0,
@@ -378,13 +394,14 @@ export const getCardDatas = async () => {
     passNum: mechanicalPassNum,
     avg: mechanicalAvg,
     min: mechanicalMin,
+    semester: prevSemester,
   });
 
   const industrialM = (await Major.findOne({
     name: '산업경영공학부',
   })) as IMajor;
   const industrial = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: industrialM._id,
   });
   let industrialAvg = 0,
@@ -403,13 +420,14 @@ export const getCardDatas = async () => {
     passNum: industrialPassNum,
     avg: industrialAvg,
     min: industrialMin,
+    semester: prevSemester,
   });
 
   const electricalM = (await Major.findOne({
     name: '전기전자공학부',
   })) as IMajor;
   const electrical = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: electricalM._id,
   });
   let electricalAvg = 0,
@@ -428,11 +446,12 @@ export const getCardDatas = async () => {
     passNum: electricalPassNum,
     avg: electricalAvg,
     min: electricalMin,
+    semester: prevSemester,
   });
 
   const chembioM = (await Major.findOne({ name: '화공생명공학과' })) as IMajor;
   const chembio = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: chembioM._id,
   });
   let chembioAvg = 0,
@@ -451,11 +470,12 @@ export const getCardDatas = async () => {
     passNum: chembioPassNum,
     avg: chembioAvg,
     min: chembioMin,
+    semester: prevSemester,
   });
 
   const datasciM = (await Major.findOne({ name: '데이터과학과' })) as IMajor;
   const datasci = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: datasciM._id,
   });
   let datasciAvg = 0,
@@ -474,11 +494,12 @@ export const getCardDatas = async () => {
     passNum: datasciPassNum,
     avg: datasciAvg,
     min: datasciMin,
+    semester: prevSemester,
   });
 
   const smartsecM = (await Major.findOne({ name: '스마트보안학부' })) as IMajor;
   const smartsec = await Application.find({
-    applySemester: prevSem,
+    applySemester: prevSemester,
     applyMajor1: smartsecM._id,
   });
   let smartsecAvg = 0,
@@ -497,6 +518,7 @@ export const getCardDatas = async () => {
     passNum: smartsecPassNum,
     avg: smartsecAvg,
     min: smartsecMin,
+    semester: prevSemester,
   });
 
   return result;
@@ -1087,7 +1109,7 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
       const majordata = await Major.findById(metadata.major);
       const pastmetadata = await ApplyMetaData.findOne({
         major: metadata.major,
-        semester: prevSem,
+        semester: prevSemester,
       });
 
       //데이터가 없을 경우 에러 처리
@@ -1116,7 +1138,7 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
       const pastPassedApplications = await Application.find({
         pnp: 'PASS',
         applyMajor1: metadata.major,
-        applySemester: prevSem,
+        applySemester: prevSemester,
       });
 
       const returndata = {
