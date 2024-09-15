@@ -24,7 +24,7 @@ export const upload = multer({
   storage: multer.memoryStorage(),
 });
 
-export const getFileFromS3 = async (getObjectParams: { Key: string }) => {
+export const getURLFromS3 = async (getObjectParams: { Key: string }) => {
   const command = new GetObjectCommand({
     ...getObjectParams,
     Bucket: bucketName,
@@ -33,6 +33,34 @@ export const getFileFromS3 = async (getObjectParams: { Key: string }) => {
   const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
   return url;
+};
+
+export const getJSONFromS3 = async (getObjectParams: { Key: string }) => {
+  try {
+    const command = new GetObjectCommand({
+      ...getObjectParams,
+      Bucket: bucketName,
+    });
+
+    const response = await s3.send(command);
+
+    if (!response.Body) {
+      throw new Error('Response body is undefined');
+    }
+
+    const stringData = await response.Body.transformToString();
+
+    if (!stringData) {
+      throw new Error('Failed to transform body to string');
+    }
+
+    const jsonData = JSON.parse(stringData);
+
+    return jsonData;
+  } catch (error) {
+    console.error('Error fetching file from S3:', error);
+    throw error;
+  }
 };
 
 export const uploadFileToS3 = async (uploadObjectParams: {
