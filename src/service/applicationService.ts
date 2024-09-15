@@ -430,7 +430,7 @@ export const getCardDatas = async () => {
     min: electricalMin,
   });
 
-  const chembioM = (await Major.findOne({ name: '화공생명공학부' })) as IMajor;
+  const chembioM = (await Major.findOne({ name: '화공생명공학과' })) as IMajor;
   const chembio = await Application.find({
     applySemester: prevSem,
     applyMajor1: chembioM._id,
@@ -446,7 +446,7 @@ export const getCardDatas = async () => {
     }
   });
   result.push({
-    name: '공과대학 화공생명공학부',
+    name: '공과대학 화공생명공학과',
     applyNum: chembio.length,
     passNum: chembioPassNum,
     avg: chembioAvg,
