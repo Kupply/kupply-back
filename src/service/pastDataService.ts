@@ -2,15 +2,13 @@ import { Types } from 'mongoose';
 import Application from '../models/applicationModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
+import { getRecent4Semester } from '../utils/semester';
 
 type numberToMajorType = {
   [key: number]: string;
 };
 type pastDataType = {
   [key: string]: object;
-};
-type numberToSemesterType = {
-  [key: number]: string;
 };
 //number id와 major name을 매핑하는 객체
 const numberToMajor: numberToMajorType = {
@@ -28,14 +26,6 @@ const numberToMajor: numberToMajorType = {
   12: '건축사회환경공학부',
   13: '컴퓨터학과',
   14: '데이터학과',
-};
-
-//number id와 Semester를 매핑하는 객체
-const numberToSemester: numberToSemesterType = {
-  1: '2022-2',
-  2: '2022-1',
-  3: '2021-2',
-  4: '2021-1',
 };
 
 export const getPastData = async (userId: Types.ObjectId) => {
@@ -227,14 +217,15 @@ export const getPastDataByMajorAndSemester = async (
   let passedNumberOfData: number = 0;
 
   let majorApplyData_semester;
+  const recent4Semester = getRecent4Semester();
   if (semester === 'all') {
     majorApplyData_semester = await Application.find({
       applyMajor1: majorData._id,
       $or: [
-        { applySemester: '2023-2' },
-        { applySemester: '2023-1' },
-        { applySemester: '2022-2' },
-        { applySemester: '2022-1' },
+        { applySemester: recent4Semester[0] },
+        { applySemester: recent4Semester[1] },
+        { applySemester: recent4Semester[2] },
+        { applySemester: recent4Semester[3] },
       ],
     });
   } else {
