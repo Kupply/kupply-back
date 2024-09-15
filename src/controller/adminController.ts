@@ -7,7 +7,7 @@ export const updateApplication = async (
   next: NextFunction,
 ) => {
   try {
-    const { passCount, failCount, totalCount } =
+    const { passCount, failCount, totalCount, passButNotAppliedCount } =
       await adminService.updateApplication();
 
     res.status(200).json({
@@ -17,6 +17,27 @@ export const updateApplication = async (
         passCount,
         failCount,
         totalCount,
+        passButNotAppliedCount,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
+export const updateTO = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await adminService.updateTO();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        message: `TO 정보 갱신이 성공적으로 완료되었습니다.`,
       },
     });
   } catch (err) {

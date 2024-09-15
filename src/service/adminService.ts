@@ -16,7 +16,8 @@ export const updateApplication = async () => {
   // 모의지원자들 중 합격자 수, 불합격자(합격자 리스트에 없는 사람들) 수
   let passCount = 0,
     failCount = 0,
-    totalCount = 0;
+    totalCount = 0,
+    passButNotAppliedCount = 0;
 
   // 합격자 처리
   const passers = await s3.getJSONFromS3({
@@ -81,6 +82,7 @@ export const updateApplication = async () => {
     });
 
     if (!application) {
+      passButNotAppliedCount += 1;
       console.log('이번 학기 지원 정보가 없습니다.\n', passer);
       continue;
     }
@@ -143,5 +145,32 @@ export const updateApplication = async () => {
     failCount += 1;
   }
 
-  return { passCount, failCount, totalCount };
+  return { passCount, failCount, totalCount, passButNotAppliedCount };
+};
+
+export const updateTO = async () => {
+  /*
+  매년 6월 말에 그 해 1학기, 2학기 TO 정보가 업데이트된다.
+  이 때 학기는 '지원학기' 기준.
+  지원 정보를 업데이트할 때, 같이 돌린다고 가정(7월, 1월에)
+  1월에는
+  7월에는 1학기 to 정보 실제 to 값으로 업데이트 & 2학기 to 정보 추가
+  */
+
+  const currentSemester = semester.getCurrentSemester();
+  let [year, onetwo] = currentSemester.split('-').map(Number);
+
+  year = 2022;
+  if (onetwo === 1) {
+    /// 7월에 돌리는 중
+    /// s3에서 1학기, 2학기 TO 정보를 가져온다.
+    const TOs = await s3.getJSONFromS3({
+      Key: `majorTO/${year}.json`,
+    });
+
+    console.log(TOs);
+  } else {
+    /// 1월에 돌리는 중
+    /// DB에서 지난 3년간의 1학기 TO 정보를 가져온다.
+  }
 };
