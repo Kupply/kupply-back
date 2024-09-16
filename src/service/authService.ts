@@ -22,7 +22,6 @@ type userDataType = {
   wannaSell: boolean;
   hopeMajor1: string;
   hopeMajor2: string;
-  hopeSemester: string;
   curGPA: number;
 };
 
@@ -69,7 +68,6 @@ export const join = async (userData: userDataType) => {
       role: userData.role,
       hopeMajor1: hopeMajor1,
       hopeMajor2: hopeMajor2,
-      hopeSemester: userData.hopeSemester,
       curGPA: userData.curGPA,
       changeGPA: 0,
       isApplied: false,

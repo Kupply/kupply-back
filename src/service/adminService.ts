@@ -103,7 +103,6 @@ export const updateApplication = async () => {
         $unset: {
           hopeMajor1: 1,
           hopeMajor2: 1,
-          hopeSemester: 1,
           curGPA: 1,
           changeGPA: 1,
           isApplied: 1,
