@@ -14,7 +14,6 @@ export type updateDataType = {
   newHopeMajor1: string;
   newHopeMajor2: string;
   newCurGPA: number;
-  newHopeSemester: string;
 };
 
 export const getAllUsers = async () => {
@@ -85,7 +84,6 @@ export const getMe = async (userId: Types.ObjectId) => {
       studentId: user.studentId,
       email: user.email,
       curGPA: user.curGPA,
-      hopeSemester: user.hopeSemester,
       hopeMajor1: hopeMajorName1,
       hopeMajor2: hopeMajorName2,
       isApplied: user.isApplied,
@@ -198,10 +196,6 @@ export const updateMe = async (
       user.changeGPA++;
       user.curGPA = updateData.newCurGPA;
     }
-  }
-
-  if (updateData.newHopeSemester && user.role === 'candidate') {
-    user.hopeSemester = updateData.newHopeSemester;
   }
 
   const updatedUser = await user.save();

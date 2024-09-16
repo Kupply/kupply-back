@@ -26,7 +26,6 @@ export interface IUser extends Document {
   // 지원자만
   hopeMajor1: Types.ObjectId;
   hopeMajor2: Types.ObjectId;
-  hopeSemester: string;
   curGPA: number;
   changeGPA: number;
   isApplied: boolean;
@@ -138,12 +137,6 @@ const userSchema = new Schema<IUser>(
     hopeMajor2: {
       type: Schema.Types.ObjectId,
       ref: 'Major',
-    },
-    hopeSemester: {
-      type: String,
-      maxLength: 6,
-      minLength: 6,
-      // ex) 2023-1
     },
     curGPA: {
       type: Number,
