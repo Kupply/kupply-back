@@ -1154,10 +1154,10 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
         pastPassedRate:
           pastmetadata &&
           pastmetadata.appliedNumber &&
-          pastmetadata.passedNumber
+          pastPassedApplications.length
             ? Number(
                 (
-                  (pastmetadata.passedNumber / pastmetadata.appliedNumber) *
+                  (pastPassedApplications.length / pastmetadata.appliedNumber) *
                   100
                 ).toFixed(2),
               )
