@@ -164,7 +164,11 @@ export const updateMe = async (
     user.nickname = updateData.newNickname;
   }
 
-  if (updateData.newHopeMajor1 && user.role === 'candidate') {
+  if (
+    updateData.newHopeMajor1 &&
+    user.role === 'candidate' &&
+    !user.isApplied
+  ) {
     const major = await Major.findOne({ name: updateData.newHopeMajor1 });
 
     if (!major) {
@@ -174,7 +178,11 @@ export const updateMe = async (
     }
   }
 
-  if (updateData.newHopeMajor2 && user.role === 'candidate') {
+  if (
+    updateData.newHopeMajor2 &&
+    user.role === 'candidate' &&
+    !user.isApplied
+  ) {
     const major = await Major.findOne({ name: updateData.newHopeMajor2 });
 
     if (!major) {
