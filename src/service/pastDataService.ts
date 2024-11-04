@@ -154,7 +154,7 @@ const majorNameMapping = {
   media: '미디어학부',
   foodecon: '식품자원경제학과',
   computer: '컴퓨터학과',
-  bioeng: '생명공학과',
+  bioeng: '생명공학부',
   lifesci: '생명과학부',
   political: '정치외교학과',
   pubadmin: '행정학과',
