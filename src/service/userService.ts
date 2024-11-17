@@ -193,7 +193,7 @@ export const updateMe = async (
   }
 
   if (updateData.newCurGPA && user.role === 'candidate') {
-    if (user.curGPA && user.curGPA !== updateData.newCurGPA) {
+    if (user.curGPA != null && user.curGPA !== updateData.newCurGPA) {
       if (user.changeGPA >= 2) {
         throw {
           status: 400,
