@@ -7,8 +7,14 @@ export const updateApplication = async (
   next: NextFunction,
 ) => {
   try {
-    const { passCount, failCount, totalCount, passButNotAppliedCount } =
-      await adminService.updateApplication();
+    const {
+      passCount,
+      failCount,
+      totalCount,
+      passButNotAppliedCount,
+      firstHopePasserCount,
+      secondHopePasserCount,
+    } = await adminService.updateApplication();
 
     res.status(200).json({
       status: 'success',
@@ -18,6 +24,8 @@ export const updateApplication = async (
         failCount,
         totalCount,
         passButNotAppliedCount,
+        firstHopePasserCount,
+        secondHopePasserCount,
       },
     });
   } catch (err) {
