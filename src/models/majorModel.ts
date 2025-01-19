@@ -5,9 +5,15 @@ const Schema = mongoose.Schema;
 export interface IMajor {
   _id: Types.ObjectId;
   name: string;
-  engName: string;
-  interest: Number;
+  recruiting: Number;
   imagesrc: string;
+  appliable: boolean;
+  collegeName: String;
+  filter: Array<String>;
+  interest: Number;
+  longEngName: String;
+  shortEngName: String;
+  //engName: string;
 }
 
 const majorSchema = new Schema<IMajor>({
@@ -15,16 +21,35 @@ const majorSchema = new Schema<IMajor>({
     type: String,
     required: true,
   },
-  engName: {
+  recruiting: {
+    type: Number,
+    default: 0
+  },
+  imagesrc: {
     type: String,
+  },
+  appliable: {
+    type: Boolean
+  },
+  collegeName: {
+    type: String
+  },
+  filter: {
+    type: [String]
   },
   interest: {
     type: Number,
     default: 0,
   },
-  imagesrc: {
-    type: String,
+  longEngName: {
+    type: String
+  },
+  shortEngName: {
+    type: String
   }
+  // engName: {
+  //   type: String,
+  // },
 });
 
 export default mongoose.model<IMajor>('Major', majorSchema);
