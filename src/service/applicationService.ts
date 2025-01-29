@@ -1144,7 +1144,7 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
       const returndata = {
         rank: 0,
         secondMajor: majordata.name,
-        engName: majordata.engName,
+        engName: majordata.longEngName,
         pastRecruitNumber: pastmetadata?.recruitNumber,
         recruitNumber: metadata.recruitNumber,
         applyNumber: metadata.appliedNumber,

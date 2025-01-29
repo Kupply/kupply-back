@@ -10,8 +10,11 @@ import landingPageRouter from './landingPageRouter';
 import adminRouter from './adminRouter';
 import * as authController from '../controller/authController';
 import * as applicationController from '../controller/applicationController';
+import * as majorController from '../controller/majorController';
 
 const router = express.Router();
+
+// router.get('/major/updateMajor', majorController.updateMajors);
 
 router.use('/auth', authRouter);
 
