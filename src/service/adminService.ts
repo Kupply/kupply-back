@@ -9,19 +9,21 @@ export const updateApplication = async () => {
   // 서비스 모의지원의 경우, 모의지원 데이터의 'applySemester'의 값이 2024-1인 사람들이다.
   // 이중전공자 합격자 명단이 올라와서 이 API를 호출하는 시점은 2024년도 1학기이다. (매년 7월, 1월에 합격자 명단이 발표될 때)
   const currentSemester = semester.getCurrentSemester(); // 이중 '지원'한 학기, 합격자 명단이 올라온 학기, 서비스 데이터에 저장되는 학기
-  const nextSemester = semester.getNextSemester();
   // 이중 '진입'하는 학기, 포털에 올라오는 합격자 명단의 학기
   // => 합격자 명단의 파일 명을 쿠플라이 서비스에 맞춰 현재학기(= 지원한 학기)로 한다.
 
   // 모의지원자들 중 합격자 수, 불합격자(합격자 리스트에 없는 사람들) 수
-  let passCount = 0,
-    failCount = 0,
-    totalCount = 0,
-    passButNotAppliedCount = 0;
+  let passCount = 0, // 모의지원자 중 합격자 수
+    failCount = 0, // 모의지원자 중 불합격자 수
+    diffCount = 0, // 모의지원자 중 합격했지만, 1,2 지망 학과와 실합격 학과가 일치하지 않는 사람 수
+    totalCount = 0, // 전체 실 모집인원 수
+    passButNotAppliedCount = 0; // 서비스 이용자 중에서 합격했지만, 모의지원하지 않은 사람 수
+  let firstHopePasserCount = 0, // 모의지원자 중 1 지망 학과로 합격한 사람 수
+    secondHopePasserCount = 0; // 모의지원자 중 2 지망 학과로 합격한 사람 수
 
   // 합격자 처리
-  const passers = await s3.getJSONFromS3({
-    Key: `passers/${currentSemester}.json`,
+  const passers = await s3.getCSVFromS3({
+    Key: `passers/${currentSemester}.csv`,
   });
 
   console.log('Get passers from s3 Success');
@@ -67,7 +69,8 @@ export const updateApplication = async () => {
 
         if (
           application &&
-          application.applyMajor1.toString() === secondMajor._id.toString()
+          (application.applyMajor1.toString() === secondMajor._id.toString() ||
+            application.applyMajor2!.toString() === secondMajor._id.toString())
         ) {
           user = u;
           break;
@@ -87,9 +90,20 @@ export const updateApplication = async () => {
       continue;
     }
 
-    if (application.applyMajor1.toString() !== secondMajor._id.toString()) {
+    if (
+      application.applyMajor1.toString() !== secondMajor._id.toString() &&
+      application.applyMajor2!.toString() !== secondMajor._id.toString()
+    ) {
       console.log('이중전공 학과가 일치하지 않습니다.\n', passer, application);
+      diffCount += 1;
       continue;
+    }
+
+    if (application.applyMajor1.toString() === secondMajor._id.toString()) {
+      firstHopePasserCount += 1;
+    }
+    if (application.applyMajor2!.toString() === secondMajor._id.toString()) {
+      secondHopePasserCount += 1;
     }
 
     // 3. 데이터 갱신
@@ -122,7 +136,6 @@ export const updateApplication = async () => {
   }
 
   // 불합격자 처리 - 합격자 처리 후 남은 모의지원자들은 불합격자로 처리
-  // FIXME: 지금은 데이터 건들면 안 되니 주석 처리
   const users = await User.find({ isApplied: true });
 
   for (const user of users) {
@@ -140,36 +153,15 @@ export const updateApplication = async () => {
     failCount += 1;
 
     await application!.save();
-
-    failCount += 1;
   }
 
-  return { passCount, failCount, totalCount, passButNotAppliedCount };
-};
-
-export const updateTO = async () => {
-  /*
-  매년 6월 말에 그 해 1학기, 2학기 TO 정보가 업데이트된다.
-  이 때 학기는 '지원학기' 기준.
-  지원 정보를 업데이트할 때, 같이 돌린다고 가정(7월, 1월에)
-  1월에는
-  7월에는 1학기 to 정보 실제 to 값으로 업데이트 & 2학기 to 정보 추가
-  */
-
-  const currentSemester = semester.getCurrentSemester();
-  let [year, onetwo] = currentSemester.split('-').map(Number);
-
-  year = 2022;
-  if (onetwo === 1) {
-    /// 7월에 돌리는 중
-    /// s3에서 1학기, 2학기 TO 정보를 가져온다.
-    const TOs = await s3.getJSONFromS3({
-      Key: `majorTO/${year}.json`,
-    });
-
-    console.log(TOs);
-  } else {
-    /// 1월에 돌리는 중
-    /// DB에서 지난 3년간의 1학기 TO 정보를 가져온다.
-  }
+  return {
+    passCount,
+    failCount,
+    diffCount,
+    totalCount,
+    passButNotAppliedCount,
+    firstHopePasserCount,
+    secondHopePasserCount,
+  };
 };
