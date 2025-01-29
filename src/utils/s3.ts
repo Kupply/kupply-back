@@ -5,6 +5,7 @@ import {
   DeleteObjectCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { parse } from 'csv-parse/sync';
 import multer from 'multer';
 
 const s3AccessKey = process.env.S3_ACCESS_KEY as string;
@@ -35,7 +36,7 @@ export const getURLFromS3 = async (getObjectParams: { Key: string }) => {
   return url;
 };
 
-export const getJSONFromS3 = async (getObjectParams: { Key: string }) => {
+export const getCSVFromS3 = async (getObjectParams: { Key: string }) => {
   try {
     const command = new GetObjectCommand({
       ...getObjectParams,
@@ -54,9 +55,12 @@ export const getJSONFromS3 = async (getObjectParams: { Key: string }) => {
       throw new Error('Failed to transform body to string');
     }
 
-    const jsonData = JSON.parse(stringData);
+    const records = parse(stringData, {
+      columns: true,
+      skip_empty_lines: true,
+    });
 
-    return jsonData;
+    return records;
   } catch (error) {
     console.error('Error fetching file from S3:', error);
     throw error;
