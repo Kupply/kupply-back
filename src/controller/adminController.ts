@@ -52,3 +52,20 @@ export const updateMajors = async (
     next(err);
   }
 };
+
+export const updateApplicationMetaData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await adminService.updateApplicationMetaData();
+
+    res.status(200).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

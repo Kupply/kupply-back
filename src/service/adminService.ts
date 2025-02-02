@@ -1,6 +1,7 @@
 import User from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Application from '../models/applicationModel';
+import ApplyMetaData from '../models/applicationMetaDataModel';
 import * as s3 from '../utils/s3';
 import * as semester from '../utils/semester';
 import * as majorValue from '../utils/major';
@@ -220,4 +221,136 @@ export const updateMajors = async () => {
   }
 
   return;
+};
+
+export const updateApplicationMetaData = async () => {
+  const recruitNumber = majorValue.recruitNumber;
+
+  for (const [majorName, records] of Object.entries(recruitNumber)) {
+    const major = await Major.findOne({ name: majorName });
+
+    for (const [semester, recruitNumber] of Object.entries(records)) {
+      console.log(majorName, semester, recruitNumber);
+
+      const applications = await Application.find({
+        $or: [{ applyMajor1: major!._id }, { applyMajor2: major!._id }],
+        applySemester: semester,
+      });
+      const passedApplications = applications.filter(
+        (application) => application.pnp === 'PASS',
+      );
+      const passedGPA = passedApplications.map((app) => app.applyGPA);
+      let passedGPAavg = null,
+        passedGPAmed = null,
+        passedGPAmode = null,
+        passedGPAmin = null;
+
+      // 합격자들의 학점 통계값 계산
+      if (passedGPA.length > 0) {
+        // Mean (Average)
+        passedGPAavg =
+          passedGPA.reduce((sum, gpa) => sum + gpa, 0) / passedGPA.length;
+
+        // Median
+        const sortedGPAs = [...passedGPA].sort((a, b) => a - b);
+        const midIdx = Math.floor(sortedGPAs.length / 2);
+        passedGPAmed =
+          sortedGPAs.length % 2 === 0
+            ? (sortedGPAs[midIdx - 1] + sortedGPAs[midIdx]) / 2
+            : sortedGPAs[midIdx];
+
+        // Mode (Most frequent GPA)
+        const frequencyMap: Record<number, number> = {};
+        let maxFrequency = 0;
+
+        for (const gpa of passedGPA) {
+          frequencyMap[gpa] = (frequencyMap[gpa] || 0) + 1;
+          if (frequencyMap[gpa] > maxFrequency) {
+            maxFrequency = frequencyMap[gpa];
+            passedGPAmode = gpa;
+          }
+        }
+
+        // Min (Smallest GPA)
+        passedGPAmin = Math.min(...passedGPA);
+      }
+
+      const applyMetaData = await ApplyMetaData.findOne({
+        major: major!._id,
+        semester: semester,
+      });
+
+      if (applyMetaData) {
+        applyMetaData.expectedRecruitNumber = recruitNumber; // 과거 데이터는 예상 선발 인원이 없음
+        applyMetaData.recruitNumber = recruitNumber;
+        applyMetaData.appliedNumber = applications.length;
+        applyMetaData.passedNumber = passedApplications.length;
+        if (passedGPAavg) {
+          applyMetaData.passedGPAavg = passedGPAavg;
+        }
+        if (passedGPAmed) {
+          applyMetaData.passedGPAmed = passedGPAmed;
+        }
+        if (passedGPAmode) {
+          applyMetaData.passedGPAmode = passedGPAmode;
+        }
+        if (passedGPAmin) {
+          applyMetaData.passedGPAmin = passedGPAmin;
+        }
+        await applyMetaData.save();
+      } else {
+        await ApplyMetaData.create({
+          major: major!._id,
+          semester: semester,
+          expectedRecruitNumber: recruitNumber,
+          recruitNumber: recruitNumber,
+          appliedNumber: applications.length,
+          passedNumber: passedApplications.length,
+          passedGPAavg: passedGPAavg,
+          passedGPAmed: passedGPAmed,
+          passedGPAmode: passedGPAmode,
+          passedGPAmin: passedGPAmin,
+        });
+      }
+    }
+
+    // 마지막으로 이번 학기(2025-1) => 이후에는 자동화 파이프라인 만들어서
+    const semester = '2025-1';
+    const lastFiveSemesters = [
+      '2024-1',
+      '2023-1',
+      '2022-1',
+      '2021-1',
+      '2020-1',
+    ];
+
+    const lastFiveRecruitNum = lastFiveSemesters.map((sem) => {
+      return recruitNumber[majorName][sem];
+    });
+
+    lastFiveRecruitNum.filter((num) => num !== 0);
+
+    let expectedRecruitNumber;
+    if (lastFiveRecruitNum.length >= 5) {
+      // 남은 데이터가 5개 이상일 때, 최대, 최소 제외하고 평균
+      expectedRecruitNumber = Math.floor(
+        lastFiveRecruitNum
+          .sort((a, b) => a - b)
+          .slice(1, 4)
+          .reduce((a, b) => a + b) / 3,
+      );
+    } else {
+      // 남은 데이터가 5개 미만일 때, 평균값.
+      expectedRecruitNumber = Math.floor(
+        lastFiveRecruitNum.reduce((a, b) => a + b) / lastFiveRecruitNum.length,
+      );
+    }
+
+    await ApplyMetaData.create({
+      major: major!._id,
+      semester: semester,
+      expectedRecruitNumber: expectedRecruitNumber,
+      appliedNumber: 0,
+    });
+  }
 };
