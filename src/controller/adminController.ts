@@ -35,3 +35,37 @@ export const updateApplication = async (
     next(err);
   }
 };
+
+export const updateMajors = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await adminService.updateMajors();
+
+    res.status(200).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const updateApplicationMetaData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    await adminService.updateApplicationMetaData();
+
+    res.status(200).json({
+      status: 'success',
+      data: null,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

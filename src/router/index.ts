@@ -9,7 +9,6 @@ import pastDataRouter from './pastDataRouter';
 import landingPageRouter from './landingPageRouter';
 import adminRouter from './adminRouter';
 import * as authController from '../controller/authController';
-import * as applicationController from '../controller/applicationController';
 
 const router = express.Router();
 
