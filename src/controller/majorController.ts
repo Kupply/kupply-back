@@ -96,20 +96,3 @@ export const deleteMajor = async (
     next(err);
   }
 };
-
-export const updateMajors = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    await majorService.updateMajors();
-
-    res.status(200).json({
-      status: 'success',
-      data: null,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
