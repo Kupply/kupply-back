@@ -1,20 +1,23 @@
 import { Types } from 'mongoose';
+
+import Email from '../models/emailModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Application from '../models/applicationModel';
-import Email from '../models/emailModel';
+
 import * as jwt from '../utils/jwt';
+import * as koreapas from '../utils/koreapas';
 import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
 type userDataType = {
-  password: string;
+  koreapasUUID: string;
+  password: string; // 고파스 연동 시에는 필요 없음
   name: string;
   studentId: string;
-  email: string;
+  email: string; // 고파스 연동 시에는 필요 없음
   firstMajor: string;
   nickname: string;
   role: string;
-  refreshToken: string;
   secondMajor: string;
   passSemester: string;
   passDescription: string;
@@ -149,9 +152,9 @@ export const login = async (userData: IUser) => {
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || (user && user.leave)) {
-    throw { status: 400, message: '존재하지 않는 이메일입니다.' };
+    throw { status: 401, message: '존재하지 않는 이메일입니다.' };
   } else if (!(await user.checkPassword(password))) {
-    throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
+    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
   }
 
   const accessToken = jwt.createToken(user);
@@ -178,6 +181,218 @@ export const login = async (userData: IUser) => {
     accessTokenExpire,
     refreshTokenExpire,
   };
+};
+
+export const koreapasJoin = async (userData: userDataType) => {
+  // 추가정보 입력 후 바로 로그인 될 수 있도록, 토큰 발급
+  // 있어야하는 정보
+  // 공통정보: koreapasUUID, name, studentId, firstMajor, nickname, role
+  // 지원자: hopeMajor1, hopeMajor2, curGPA
+  // 합격자: secondMajor, passSemester, passDescription, passGPA
+
+  const koreapasUUID = userData.koreapasUUID;
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (user) {
+    throw { status: 400, message: '이미 등록된 고파스 회원입니다.' };
+  }
+
+  const firstMajor = await Major.findOne({
+    name: userData.firstMajor,
+  });
+
+  if (!firstMajor) {
+    throw {
+      status: 404,
+      message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
+    };
+  }
+
+  let newUser;
+  if (userData.role === 'candidate') {
+    const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+    const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+
+    if (!hopeMajor1 || !hopeMajor2) {
+      throw {
+        status: 404,
+        message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
+
+    newUser = new User({
+      koreapasUUID: userData.koreapasUUID,
+      name: userData.name,
+      studentId: userData.studentId,
+      firstMajor: firstMajor._id,
+      nickname: userData.nickname,
+      role: userData.role,
+      hopeMajor1: hopeMajor1,
+      hopeMajor2: hopeMajor2,
+      curGPA: userData.curGPA,
+      changeGPA: 0,
+      isApplied: false,
+    });
+
+    await hopeMajor1.updateOne({ $inc: { interest: 1 } });
+    await hopeMajor2.updateOne({ $inc: { interest: 1 } });
+    await newUser.save();
+  } else {
+    const secondMajor = await Major.findOne({
+      name: userData.secondMajor,
+    });
+
+    if (!secondMajor) {
+      throw {
+        status: 404,
+        message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
+
+    newUser = new User({
+      koreapasUUID: userData.koreapasUUID,
+      name: userData.name,
+      studentId: userData.studentId,
+      firstMajor: firstMajor._id,
+      nickname: userData.nickname,
+      role: userData.role,
+      secondMajor: secondMajor._id,
+      passSemester: userData.passSemester,
+      passGPA: userData.passGPA,
+    });
+
+    await Application.create({
+      candidateId: newUser._id,
+      pnp: 'PASS',
+      applyMajor1: secondMajor._id,
+      applySemester: userData.passSemester,
+      applyGPA: userData.passGPA,
+    });
+    await newUser.save();
+  }
+
+  const accessToken = jwt.createToken(newUser);
+  const refreshToken = jwt.createRefreshToken();
+
+  await newUser.updateOne({ refreshToken });
+
+  const data = {
+    accessToken,
+    refreshToken,
+  };
+
+  return data;
+};
+
+export const koreapasLogin = async (
+  koreapasId: string,
+  koreapasPassword: string,
+) => {
+  const response = await koreapas.koreapasLogin(koreapasId, koreapasPassword);
+
+  if (response.result === false) {
+    // 1. 고파스 로그인 실패
+    throw {
+      status: 401,
+      message: '유효하지 않은 고파스 아이디 혹은 비밀번호 입니다.',
+    };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2. 고파스 로그인에 성공했지만, 고파스 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const koreapasUUID = response.data.uuid;
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (!user) {
+    // 3. 쿠플라이에 등록되지 않은 고파스 회원일 때
+    const data = {
+      isKupply: false,
+      koreapasUUID: koreapasUUID,
+      firstMajor: {
+        code: response.data.dept,
+        campus: response.data.campus,
+      },
+    };
+
+    return data;
+  } else {
+    // 4. 쿠플라이에 등록된 고파스 회원일 때
+    // 로그인 처리
+    const accessToken = jwt.createToken(user);
+    const refreshToken = jwt.createRefreshToken();
+
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken },
+      {
+        new: true,
+      },
+    );
+
+    // TODO: accessTokenExpire, refreshTokenExpire 설정 ?
+    // TODO: refreshToken은 보내지 않는다 ?
+    const data = {
+      isKupply: true,
+      accessToken,
+      refreshToken,
+    };
+
+    return data;
+  }
+};
+
+export const koreapasVerify = async (koreapasUUID: string) => {
+  const response = await koreapas.koreapasVerify(koreapasUUID);
+
+  if (response.result === 'false') {
+    // 1) koreapasUUID가 유효하지 않을 때
+    throw { status: 401, message: '유효하지 않은 uuid 입니다.' };
+  } else if (
+    response.result === 'true' &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2) koreapasUUID가 유효하지만, 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (!user) {
+    // 3) koreapasUUID가 유효하고, 유효한 레벨이지만, 쿠플라이에 등록되지 않은 회원일 때
+    const data = {
+      isKupply: false,
+      koreapasUUID: koreapasUUID,
+    };
+
+    return data;
+  } else {
+    // 4) koreapasUUID가 유효하고, 유효한 레벨이고, 쿠플라이에 등록된 회원일 때
+    // 로그인 처리
+    const accessToken = jwt.createToken(user);
+    const refreshToken = jwt.createRefreshToken();
+
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken },
+      {
+        new: true,
+      },
+    );
+
+    // TODO: accessTokenExpire, refreshTokenExpire 설정 ?
+    // TODO: refreshToken은 보내지 않는다 ?
+    const data = {
+      isKupply: true,
+      accessToken,
+      refreshToken,
+    };
+
+    return data;
+  }
 };
 
 export const logout = async (accessToken: string) => {

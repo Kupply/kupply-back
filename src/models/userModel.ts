@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   // 공통
   _id: Types.ObjectId;
+  koreapasUUID: string;
   password: string;
   name: string;
   studentId: string;
@@ -34,6 +35,11 @@ export interface IUser extends Document {
 const userSchema = new Schema<IUser>(
   {
     // common info of user
+    koreapasUUID: {
+      type: String,
+      required: [true, 'User must have a koreapas UUID.'],
+      unique: true,
+    },
     password: {
       type: String,
       required: [true, 'User must have a password.'],

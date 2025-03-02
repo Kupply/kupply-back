@@ -58,6 +58,62 @@ export const login = async (
   }
 };
 
+export const koreapasJoin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userData = req.body;
+    const data = await authService.koreapasJoin(userData);
+
+    res.status(201).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id: koreapasId, password: koreapasPassword } = req.body;
+
+    const data = await authService.koreapasLogin(koreapasId, koreapasPassword);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasVerify = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { uuid: koreapasUUID } = req.body;
+
+    const data = await authService.koreapasVerify(koreapasUUID);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const logout = async (req: Request, res: Response) => {
   let refreshToken = '';
   if (req.headers.authorization) {
