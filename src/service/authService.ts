@@ -28,119 +28,119 @@ type userDataType = {
   curGPA: number;
 };
 
-export const join = async (userData: userDataType) => {
-  // 인증된 email인지 확인
-  const email = await Email.findOne({ email: userData.email });
-  if (!email || !email.certificate) {
-    throw { status: 400, message: '이메일 인증을 먼저 완료해주세요.' };
-  }
+// export const join = async (userData: userDataType) => {
+//   // 인증된 email인지 확인
+//   const email = await Email.findOne({ email: userData.email });
+//   if (!email || !email.certificate) {
+//     throw { status: 400, message: '이메일 인증을 먼저 완료해주세요.' };
+//   }
 
-  const firstMajor = await Major.findOne({
-    name: userData.firstMajor,
-  });
+//   const firstMajor = await Major.findOne({
+//     name: userData.firstMajor,
+//   });
 
-  if (!firstMajor) {
-    throw {
-      status: 404,
-      message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
-    };
-  }
+//   if (!firstMajor) {
+//     throw {
+//       status: 404,
+//       message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
+//     };
+//   }
 
-  let newUser;
-  let secondMajorId;
+//   let newUser;
+//   let secondMajorId;
 
-  if (userData.role === 'candidate') {
-    // candidate
-    const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
-    const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+//   if (userData.role === 'candidate') {
+//     // candidate
+//     const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+//     const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
 
-    if (!hopeMajor1 || !hopeMajor2) {
-      throw {
-        status: 404,
-        message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
-      };
-    }
+//     if (!hopeMajor1 || !hopeMajor2) {
+//       throw {
+//         status: 404,
+//         message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+//       };
+//     }
 
-    newUser = new User({
-      password: userData.password,
-      name: userData.name,
-      studentId: userData.studentId,
-      email: userData.email,
-      firstMajor: firstMajor._id,
-      nickname: userData.nickname,
-      role: userData.role,
-      hopeMajor1: hopeMajor1,
-      hopeMajor2: hopeMajor2,
-      curGPA: userData.curGPA,
-      changeGPA: 0,
-      isApplied: false,
-    });
-  } else {
-    // passer
-    const secondMajor = await Major.findOne({
-      name: userData.secondMajor,
-    });
+//     newUser = new User({
+//       password: userData.password,
+//       name: userData.name,
+//       studentId: userData.studentId,
+//       email: userData.email,
+//       firstMajor: firstMajor._id,
+//       nickname: userData.nickname,
+//       role: userData.role,
+//       hopeMajor1: hopeMajor1,
+//       hopeMajor2: hopeMajor2,
+//       curGPA: userData.curGPA,
+//       changeGPA: 0,
+//       isApplied: false,
+//     });
+//   } else {
+//     // passer
+//     const secondMajor = await Major.findOne({
+//       name: userData.secondMajor,
+//     });
 
-    if (!secondMajor) {
-      throw {
-        status: 404,
-        message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
-      };
-    }
+//     if (!secondMajor) {
+//       throw {
+//         status: 404,
+//         message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+//       };
+//     }
 
-    secondMajorId = secondMajor._id;
-    newUser = new User({
-      password: userData.password,
-      name: userData.name,
-      studentId: userData.studentId,
-      email: userData.email,
-      firstMajor: firstMajor._id,
-      nickname: userData.nickname,
-      role: userData.role,
-      secondMajor: secondMajor._id,
-      passSemester: userData.passSemester,
-      passGPA: userData.passGPA,
-    });
-  }
-  await newUser.save();
+//     secondMajorId = secondMajor._id;
+//     newUser = new User({
+//       password: userData.password,
+//       name: userData.name,
+//       studentId: userData.studentId,
+//       email: userData.email,
+//       firstMajor: firstMajor._id,
+//       nickname: userData.nickname,
+//       role: userData.role,
+//       secondMajor: secondMajor._id,
+//       passSemester: userData.passSemester,
+//       passGPA: userData.passGPA,
+//     });
+//   }
+//   await newUser.save();
 
-  //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
-  if (userData.role === 'candidate') {
-    const updateMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
-    const updateMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+//   //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
+//   if (userData.role === 'candidate') {
+//     const updateMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+//     const updateMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
 
-    if (updateMajor1 && updateMajor1.interest !== undefined) {
-      await Major.updateOne(
-        { name: userData.hopeMajor1 },
-        { interest: (updateMajor1.interest as number) + 1 },
-      );
-    }
-    if (updateMajor2 && updateMajor2.interest !== undefined)
-      await Major.updateOne(
-        { name: userData.hopeMajor2 },
-        { interest: (updateMajor2.interest as number) + 1 },
-      );
-  }
+//     if (updateMajor1 && updateMajor1.interest !== undefined) {
+//       await Major.updateOne(
+//         { name: userData.hopeMajor1 },
+//         { interest: (updateMajor1.interest as number) + 1 },
+//       );
+//     }
+//     if (updateMajor2 && updateMajor2.interest !== undefined)
+//       await Major.updateOne(
+//         { name: userData.hopeMajor2 },
+//         { interest: (updateMajor2.interest as number) + 1 },
+//       );
+//   }
 
-  // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
-  // email.certificate = true;
-  // await email.save();
+//   // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
+//   // email.certificate = true;
+//   // await email.save();
 
-  // 합격자면 그 정보 application에 바로 저장.
-  if (userData.role === 'passer') {
-    const passer = await User.findOne({ studentId: userData.studentId });
+//   // 합격자면 그 정보 application에 바로 저장.
+//   if (userData.role === 'passer') {
+//     const passer = await User.findOne({ studentId: userData.studentId });
 
-    await Application.create({
-      candidateId: passer!._id,
-      pnp: 'PASS',
-      applyMajor1: secondMajorId,
-      applySemester: userData.passSemester,
-      applyGPA: userData.passGPA,
-    });
-  }
+//     await Application.create({
+//       candidateId: passer!._id,
+//       pnp: 'PASS',
+//       applyMajor1: secondMajorId,
+//       applySemester: userData.passSemester,
+//       applyGPA: userData.passGPA,
+//     });
+//   }
 
-  return newUser;
-};
+//   return newUser;
+// };
 
 export const login = async (userData: IUser) => {
   const { email, password } = userData;

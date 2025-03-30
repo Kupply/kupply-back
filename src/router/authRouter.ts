@@ -3,7 +3,7 @@ import * as authController from '../controller/authController';
 
 const router = express.Router();
 
-router.post('/join', authController.join);
+// router.post('/join', authController.join);
 router.post('/login', authController.login);
 router.post('/koreapasJoin', authController.koreapasJoin);
 router.post('/koreapasLogin', authController.koreapasLogin);

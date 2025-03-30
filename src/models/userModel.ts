@@ -5,10 +5,10 @@ export interface IUser extends Document {
   // 공통
   _id: Types.ObjectId;
   koreapasUUID: string;
-  password: string;
+  password: string; // FIXME: To Be Deleted
   name: string;
   studentId: string;
-  email: string;
+  email: string; // FIXME: To Be Deleted
   firstMajor: Types.ObjectId;
   nickname: string;
   role: string;
@@ -42,7 +42,6 @@ const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: [true, 'User must have a password.'],
       minLength: 8,
       maxLength: 20,
       select: false,
@@ -58,7 +57,6 @@ const userSchema = new Schema<IUser>(
     },
     email: {
       type: String,
-      required: [true, 'User must have an email address.'],
       unique: true,
       trim: true,
       match: [
