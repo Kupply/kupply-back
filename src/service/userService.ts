@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
-import User from '../models/userModel';
-import Major, { IMajor } from '../models/majorModel';
-import Application from '../models/applicationModel';
+
 import Email from '../models/emailModel';
+import Major, { IMajor } from '../models/majorModel';
+import User from '../models/userModel';
 import * as s3 from '../utils/s3';
 import * as koreapas from '../utils/koreapas';
 
@@ -68,8 +68,11 @@ export const getMe = async (userId: Types.ObjectId) => {
   }
 
   if (user.role === 'candidate') {
-    const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
-      .name;
+    // const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
+    //   .name;
+    const firstMajor = (await Major.findById(user.firstMajor)) as IMajor;
+    const firstMajorName = firstMajor.name;
+    const firstMajorCampus = firstMajor.campus;
     const hopeMajorName1 = ((await Major.findById(user.hopeMajor1)) as IMajor)
       .name;
     const hopeMajorName2 = ((await Major.findById(user.hopeMajor2)) as IMajor)
@@ -81,6 +84,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
+      campus: firstMajorCampus,
       firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
