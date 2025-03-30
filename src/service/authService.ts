@@ -15,7 +15,7 @@ type userDataType = {
   name: string;
   studentId: string;
   email: string; // 고파스 연동 시에는 필요 없음
-  firstMajor: string;
+  firstMajorCode: string;
   nickname: string;
   role: string;
   secondMajor: string;
@@ -184,9 +184,8 @@ export const login = async (userData: IUser) => {
 };
 
 export const koreapasJoin = async (userData: userDataType) => {
-  // 추가정보 입력 후 바로 로그인 될 수 있도록, 토큰 발급
   // 있어야하는 정보
-  // 공통정보: koreapasUUID, name, studentId, firstMajor, nickname, role
+  // 공통정보: koreapasUUID, name, studentId, firstMajorCode, nickname, role
   // 지원자: hopeMajor1, hopeMajor2, curGPA
   // 합격자: secondMajor, passSemester, passDescription, passGPA
 
@@ -198,7 +197,7 @@ export const koreapasJoin = async (userData: userDataType) => {
   }
 
   const firstMajor = await Major.findOne({
-    name: userData.firstMajor,
+    code: userData.firstMajorCode,
   });
 
   if (!firstMajor) {
@@ -271,17 +270,7 @@ export const koreapasJoin = async (userData: userDataType) => {
     await newUser.save();
   }
 
-  const accessToken = jwt.createToken(newUser);
-  const refreshToken = jwt.createRefreshToken();
-
-  await newUser.updateOne({ refreshToken });
-
-  const data = {
-    accessToken,
-    refreshToken,
-  };
-
-  return data;
+  return;
 };
 
 export const koreapasLogin = async (

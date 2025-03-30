@@ -65,11 +65,10 @@ export const koreapasJoin = async (
 ) => {
   try {
     const userData = req.body;
-    const data = await authService.koreapasJoin(userData);
+    await authService.koreapasJoin(userData);
 
     res.status(201).json({
       status: 'success',
-      data: data,
     });
   } catch (err) {
     next(err);
