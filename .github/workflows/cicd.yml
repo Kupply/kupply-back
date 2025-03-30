@@ -2,18 +2,30 @@ name: docker-build
 
 on:
   push:
-    branches: ['main']
+    branches: ['main', 'develop']
 
 env:
-  DOCKER_IMAGE: ghcr.io/overthestream/kupply-back
+  DOCKER_IMAGE: ghcr.io/yoonjunhyeok/kupply-back
   DOCKER_CONTAINER: kupply-back
+  DEV_DOCKER_CONTAINER: kupply-back-dev
 
 jobs:
   build:
     runs-on: ubuntu-20.04
+    outputs:
+      image_tag: ${{ steps.set_tag.outputs.tag }}
     steps:
       - name: Checkout Source Code
         uses: actions/checkout@v3
+
+      - name: Set tag based on branch
+        id: set_tag
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            echo "tag=dev" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup Docker
         id: buildx
@@ -31,9 +43,10 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: ${{ env.DOCKER_IMAGE }}:latest
+          tags: ${{ env.DOCKER_IMAGE }}:${{ steps.set_tag.outputs.tag }}
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: self-hosted
     steps:
@@ -50,7 +63,37 @@ jobs:
           echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
           echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
           cat .env
+      - name: Docker login to GHCR
+        run: |
+          echo ${{ secrets.GHCR_ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Run Docker
         run: |
           docker stop ${{env.DOCKER_CONTAINER}} && docker rm ${{env.DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:latest
           docker run --env-file ./.env -d -p 8080:8080 --name ${{env.DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:latest
+
+  deploy-dev:
+    if: github.ref == 'refs/heads/develop'
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: setup .env
+        run: |
+          echo "DBUrl=${{ secrets.DBURL }}" >> .env
+          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> .env
+          echo "BUCKET_REGION=${{ secrets.BUCKET_REGION }}" >> .env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "JWT_CERTIFICATE_SECRET_KEY=${{ secrets.JWT_CERTIFICATE_SECRET_KEY }}" >> .env
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "PORT=8081" >> .env
+          cat .env
+      - name: Docker login to GHCR
+        run: |
+          echo ${{ secrets.GHCR_ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Run Docker
+        run: |
+          docker stop ${{env.DEV_DOCKER_CONTAINER}} && docker rm ${{env.DEV_DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:dev
+          docker run --env-file ./.env -d --name ${{env.DEV_DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:dev
