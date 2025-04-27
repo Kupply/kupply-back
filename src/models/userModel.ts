@@ -17,6 +17,7 @@ export interface IUser extends Document {
   profilePic: string;
   profileName: string; // s3에 저장된 이름
   leave: boolean; // 탈퇴한 유저이면 true
+  campus: string; // 소속캠퍼스 (서울캠: A , 세종캠: S , 대학원생: G, 교류학생: C)
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -110,6 +111,9 @@ const userSchema = new Schema<IUser>(
     leave: {
       type: Boolean,
       default: false,
+    },
+    campus: {
+      type: String,
     },
     // info of passer only
     secondMajor: {
