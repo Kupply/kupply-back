@@ -701,12 +701,12 @@ export const deleteApplicationData = async (userId: Types.ObjectId) => {
 
     //Metadata의 appliedNumber를 증가시킨다.
     const updateMetaData1 = await ApplyMetaData.findOne({
-      semester: user.applySemester,
-      major: user.applyMajor1,
+      semester: user.value?.applySemester,
+      major: user.value?.applyMajor1,
     });
     const updateMetaData2 = await ApplyMetaData.findOne({
-      semester: user.applySemester,
-      major: user.applyMajor2,
+      semester: user.value?.applySemester,
+      major: user.value?.applyMajor2,
     });
 
     if (updateMetaData1 && updateMetaData1.appliedNumber !== undefined) {

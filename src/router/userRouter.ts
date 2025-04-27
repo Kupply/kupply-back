@@ -18,5 +18,6 @@ userRouter.post(
   upload.single('document'),
   userController.uploadResumeToS3,
 );
+userRouter.post('/syncKoreapas', userController.syncKoreapas);
 
 export default userRouter;

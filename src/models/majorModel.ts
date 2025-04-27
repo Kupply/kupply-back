@@ -5,6 +5,7 @@ const Schema = mongoose.Schema;
 export interface IMajor {
   _id: Types.ObjectId;
   name: string; // 학과 한글 이름
+  code: string; // 고파스 학과 코드
   collegeName: string; // 단과대 한글 이름
   shortEngName: string; // 학과 영문 약어
   longEngName: string; // 학과 영문 이름
@@ -20,9 +21,12 @@ const majorSchema = new Schema<IMajor>({
     type: String,
     required: true,
   },
-  collegeName: {
+  code: {
     type: String,
     required: true,
+  },
+  collegeName: {
+    type: String,
   },
   shortEngName: {
     type: String,
