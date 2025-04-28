@@ -62,6 +62,9 @@ jobs:
           echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
           echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
           echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> .env
+          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> .env
+          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> .env
           cat .env
       - name: Docker login to GHCR
         run: |
@@ -88,6 +91,9 @@ jobs:
           echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
           echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
           echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
+          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> .env
+          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> .env
+          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> .env
           echo "PORT=8081" >> .env
           cat .env
       - name: Docker login to GHCR
