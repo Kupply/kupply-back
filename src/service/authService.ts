@@ -341,11 +341,11 @@ export const koreapasLogin = async (
 export const koreapasVerify = async (koreapasUUID: string) => {
   const response = await koreapas.koreapasVerify(koreapasUUID);
 
-  if (response.result === 'false') {
+  if (response.result === false) {
     // 1) koreapasUUID가 유효하지 않을 때
     throw { status: 401, message: '유효하지 않은 uuid 입니다.' };
   } else if (
-    response.result === 'true' &&
+    response.result === true &&
     (response.data.level === '9' || response.data.level === '10')
   ) {
     // 2) koreapasUUID가 유효하지만, 레벨이 9 또는 10일 때
