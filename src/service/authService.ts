@@ -300,14 +300,19 @@ export const koreapasLogin = async (
     // 3. 쿠플라이에 등록되지 않은 고파스 회원일 때
     // 연동 동의 및 추가 정보 입력 후 회원가입할 수 있게 관련 정보 같이 return
     // 프론트에서 이 정보들 유지하다가 회원가입 시에 사용
+    const firstMajorName = (
+      (await Major.findOne({ code: response.data.dept })) as IMajor
+    ).name;
+
     const data = {
       isKupply: false,
       koreapasData: {
-        uuid: koreapasUUID,
+        koreapasUUID: koreapasUUID,
         nickname: response.data.nickname,
         studentId: response.data.hakbun,
         firstMajorCode: response.data.dept,
         firstMajorCampus: response.data.campus,
+        firstMajorName: firstMajorName,
       },
     };
 
