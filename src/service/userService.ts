@@ -68,11 +68,8 @@ export const getMe = async (userId: Types.ObjectId) => {
   }
 
   if (user.role === 'candidate') {
-    // const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
-    //   .name;
     const firstMajor = (await Major.findById(user.firstMajor)) as IMajor;
     const firstMajorName = firstMajor.name;
-    const userCampus = user.campus;
     const hopeMajorName1 = ((await Major.findById(user.hopeMajor1)) as IMajor)
       .name;
     const hopeMajorName2 = ((await Major.findById(user.hopeMajor2)) as IMajor)
@@ -84,7 +81,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
-      campus: userCampus,
+      campus: user.campus,
       firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
@@ -106,6 +103,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
+      campus: user.campus,
       firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
