@@ -113,6 +113,26 @@ export const koreapasVerify = async (
   }
 };
 
+export const koreapasSync = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { koreapasId, koreapasPassword } = req.body;
+
+    const userId = req.userId as Types.ObjectId;
+
+    await authService.koreapasSync(userId, koreapasId, koreapasPassword);
+
+    res.status(200).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const logout = async (req: Request, res: Response) => {
   let refreshToken = '';
   if (req.headers.authorization) {

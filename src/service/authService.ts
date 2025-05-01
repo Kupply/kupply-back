@@ -393,6 +393,62 @@ export const koreapasVerify = async (koreapasUUID: string) => {
   }
 };
 
+export const koreapasSync = async (
+  userId: Types.ObjectId,
+  koreapasId: string,
+  koreapasPassword: string,
+) => {
+  const response = await koreapas.koreapasLogin(koreapasId, koreapasPassword);
+
+  if (response.result === false) {
+    // 1. 고파스 로그인 실패
+    throw {
+      status: 401,
+      message: '유효하지 않은 고파스 아이디 혹은 비밀번호 입니다.',
+    };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2. 고파스 로그인에 성공했지만, 고파스 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+  if (user.koreapasUUID) {
+    // 3. 이미 고파스 인증을 한 경우
+    throw {
+      status: 400,
+      message: '이미 고파스 인증을 완료한 사용자입니다.',
+    };
+  }
+
+  const firstMajor = await Major.findOne({
+    code: response.data.dept,
+  });
+
+  if (!firstMajor) {
+    // 4. 고파스 전공 코드에 해당하는 전공이 없는 경우
+    throw {
+      status: 404,
+      message: '존재하지 않는 전공 코드입니다. 관리자에게 문의하세요.',
+    };
+  }
+
+  await user.updateOne(
+    {
+      koreapasUUID: response.data.uuid,
+      nickname: response.data.nickname,
+      firstMajor: firstMajor._id,
+    },
+    { runValidators: true },
+  );
+};
+
 export const logout = async (accessToken: string) => {
   if (accessToken) {
     const { id } = jwt.decodeToken(accessToken);
