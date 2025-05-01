@@ -8,6 +8,9 @@ router.post('/login', authController.login);
 router.post('/koreapasJoin', authController.koreapasJoin);
 router.post('/koreapasLogin', authController.koreapasLogin); // 실제 로그인, 회원가입 시 고파스 인증용으로 사용
 router.post('/koreapasVerify', authController.koreapasVerify);
+router.post('/koreapasSync', authController.koreapasSync);
+router.post('/checkKupply', authController.checkKupply);
+router.post('/checkKoreapas', authController.checkKoreapas);
 router.get('/logout', authController.logout);
 router.post('/sendEmail', authController.sendEmail);
 router.post('/certifyEmail', authController.certifyEmail);

@@ -113,6 +113,74 @@ export const koreapasVerify = async (
   }
 };
 
+export const koreapasSync = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {
+      userId,
+      koreapasUUID,
+      koreapasNickname,
+      koreapasFirstMajorCode,
+      koreapasFirstMajorCampus,
+    } = req.body;
+
+    await authService.koreapasSync(
+      userId,
+      koreapasUUID,
+      koreapasNickname,
+      koreapasFirstMajorCode,
+      koreapasFirstMajorCampus,
+    );
+
+    res.status(200).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkKupply = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email: email, password: password } = req.body;
+
+    const userId = await authService.checkKupply(email, password);
+
+    res.status(200).json({
+      status: 'success',
+      userId: userId,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkKoreapas = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id: koreapasId, password: koreapasPassword } = req.body;
+
+    const data = await authService.checkKoreapas(koreapasId, koreapasPassword);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const logout = async (req: Request, res: Response) => {
   let refreshToken = '';
   if (req.headers.authorization) {

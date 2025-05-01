@@ -165,23 +165,3 @@ export const uploadResumeToS3 = async (
     next(err);
   }
 };
-
-export const syncKoreapas = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const { koreapasId, koreapasPassword } = req.body;
-
-    const userId = req.userId as Types.ObjectId;
-
-    await userService.syncKoreapas(userId, koreapasId, koreapasPassword);
-
-    res.status(200).json({
-      status: 'success',
-    });
-  } catch (err) {
-    next(err);
-  }
-};

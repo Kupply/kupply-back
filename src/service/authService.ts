@@ -393,6 +393,91 @@ export const koreapasVerify = async (koreapasUUID: string) => {
   }
 };
 
+export const koreapasSync = async (
+  userId: Types.ObjectId,
+  koreapasUUID: string,
+  koreapasNickname: string,
+  koreapasFirstMajorCode: string,
+  koreapasFirstMajorCampus: string,
+) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  const firstMajor = await Major.findOne({
+    code: koreapasFirstMajorCode,
+  });
+
+  if (!firstMajor) {
+    // 고파스 전공 코드에 해당하는 전공이 없는 경우
+    throw {
+      status: 404,
+      message: '존재하지 않는 전공 코드입니다. 관리자에게 문의하세요.',
+    };
+  }
+
+  await user.updateOne(
+    {
+      koreapasUUID: koreapasUUID,
+      nickname: koreapasNickname,
+      firstMajor: firstMajor._id,
+      campus: koreapasFirstMajorCampus,
+    },
+    { runValidators: true },
+  );
+
+  return;
+};
+
+export const checkKupply = async (email: string, password: string) => {
+  if (!email || !password) {
+    throw { status: 400, message: '이메일 또는 비밀번호를 입력해주세요.' };
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user || (user && user.leave)) {
+    throw { status: 401, message: '존재하지 않는 이메일입니다.' };
+  } else if (!(await user.checkPassword(password))) {
+    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
+  }
+
+  return user._id;
+};
+
+export const checkKoreapas = async (
+  koreapasId: string,
+  koreapasPassword: string,
+) => {
+  const response = await koreapas.koreapasLogin(koreapasId, koreapasPassword);
+
+  if (response.result === false) {
+    // 1. 고파스 로그인 실패
+    throw {
+      status: 401,
+      message: '유효하지 않은 고파스 아이디 혹은 비밀번호 입니다.',
+    };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2. 고파스 로그인에 성공했지만, 고파스 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const data = {
+    koreapasUUID: response.data.uuid,
+    nickname: response.data.nickname,
+    studentId: response.data.hakbun,
+    firstMajorCode: response.data.dept,
+    firstMajorCampus: response.data.campus,
+  };
+
+  return data;
+};
+
 export const logout = async (accessToken: string) => {
   if (accessToken) {
     const { id } = jwt.decodeToken(accessToken);
