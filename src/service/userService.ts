@@ -14,6 +14,7 @@ export type updateDataType = {
   newHopeMajor1: string;
   newHopeMajor2: string;
   newCurGPA: number;
+  newEmail: string;
 };
 
 export const getAllUsers = async () => {
@@ -166,6 +167,10 @@ export const updateMe = async (
     user.nickname = updateData.newNickname;
   }
 
+  if (updateData.newEmail && updateData.newEmail !== user.email) {
+    user.email = updateData.newEmail;
+  }
+
   if (
     updateData.newHopeMajor1 &&
     user.role === 'candidate' &&
@@ -215,7 +220,6 @@ export const updateMe = async (
 
     if (major && major.interest !== undefined) {
       (major.interest as number)++;
-      console.log(major.name);
       await major.save();
     }
 
@@ -223,7 +227,6 @@ export const updateMe = async (
 
     if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
-      console.log(deleteMajor.name);
       await deleteMajor.save();
     }
   }
@@ -233,7 +236,6 @@ export const updateMe = async (
 
     if (major && major.interest !== undefined) {
       (major.interest as number)++;
-      console.log(major.name);
       await major.save();
     }
 
@@ -241,7 +243,6 @@ export const updateMe = async (
 
     if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
-      console.log(deleteMajor.name);
       await deleteMajor.save();
     }
   }
