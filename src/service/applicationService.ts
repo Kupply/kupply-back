@@ -1135,12 +1135,6 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
         }
       }
 
-      const pastPassedApplications = await Application.find({
-        pnp: 'PASS',
-        applyMajor1: metadata.major,
-        applySemester: prevSemester,
-      });
-
       const returndata = {
         rank: 0,
         secondMajor: majordata.name,
@@ -1158,17 +1152,17 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
         pastPassedRate:
           pastmetadata &&
           pastmetadata.appliedNumber &&
-          pastPassedApplications.length
+          pastmetadata.passedNumber
             ? Number(
                 (
-                  (pastPassedApplications.length / pastmetadata.appliedNumber) *
+                  (pastmetadata.passedNumber / pastmetadata.appliedNumber) *
                   100
                 ).toFixed(2),
               )
             : -1,
         pastmean: pastmetadata?.passedGPAavg,
         pastmin: pastmetadata?.passedGPAmin,
-        pastPassedNum: pastPassedApplications.length,
+        pastPassedNum: pastmetadata?.passedNumber,
         interest: majordata.interest,
         interestedNum: interestedNum,
         imagesrc: majordata.imagesrc,
