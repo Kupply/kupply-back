@@ -478,6 +478,19 @@ export const checkKoreapas = async (
   return data;
 };
 
+// uuid 확인으로 koreapas로 이미 등록된 쿠플라이 회원인지 확인 
+export const checkKoreapasJoined = async (koreapasUUID: string) => {
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+  const data = {
+    alreadyJoined: false, 
+    koreapasUUID: koreapasUUID
+  }
+  if (user) {
+    data.alreadyJoined = true;
+  } 
+  return data; 
+};
+
 export const logout = async (accessToken: string) => {
   if (accessToken) {
     const { id } = jwt.decodeToken(accessToken);

@@ -11,6 +11,7 @@ router.post('/koreapasVerify', authController.koreapasVerify);
 router.post('/koreapasSync', authController.koreapasSync);
 router.post('/checkKupply', authController.checkKupply);
 router.post('/checkKoreapas', authController.checkKoreapas);
+router.post('/checkKoreapasJoined', authController.checkKoreapasJoined);
 router.get('/logout', authController.logout);
 router.post('/sendEmail', authController.sendEmail);
 router.post('/certifyEmail', authController.certifyEmail);

@@ -181,6 +181,23 @@ export const checkKoreapas = async (
   }
 };
 
+export const checkKoreapasJoined = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { koreapasUUID } = req.body;
+    const data = await authService.checkKoreapasJoined(koreapasUUID);
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 export const logout = async (req: Request, res: Response) => {
   let refreshToken = '';
   if (req.headers.authorization) {
