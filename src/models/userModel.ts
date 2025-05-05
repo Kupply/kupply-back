@@ -8,7 +8,7 @@ export interface IUser extends Document {
   password: string; // FIXME: To Be Deleted
   name: string;
   studentId: string;
-  email: string; // FIXME: To Be Deleted
+  email: string;
   firstMajor: Types.ObjectId;
   nickname: string;
   role: string;
@@ -54,11 +54,9 @@ const userSchema = new Schema<IUser>(
     studentId: {
       type: String,
       required: [true, 'User must have a student ID.'],
-      unique: true,
     },
     email: {
       type: String,
-      unique: true,
       trim: true,
       match: [
         /^[a-zA-Z0-9._%+-]+@korea\.ac\.kr$/,

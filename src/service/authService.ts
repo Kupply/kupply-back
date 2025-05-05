@@ -14,10 +14,11 @@ type userDataType = {
   password: string; // 고파스 연동 시에는 필요 없음
   name: string;
   studentId: string;
-  email: string; // 고파스 연동 시에는 필요 없음
+  email: string;
   firstMajorCode: string;
   nickname: string;
   role: string;
+  campus: string;
   secondMajor: string;
   passSemester: string;
   passDescription: string;
@@ -185,7 +186,7 @@ export const login = async (userData: IUser) => {
 
 export const koreapasJoin = async (userData: userDataType) => {
   // 있어야하는 정보
-  // 공통정보: koreapasUUID, name, studentId, firstMajorCode, nickname, role
+  // 공통정보: koreapasUUID, name, studentId, firstMajorCode, nickname, role, email, campus
   // 지원자: hopeMajor1, hopeMajor2, curGPA
   // 합격자: secondMajor, passSemester, passDescription, passGPA
 
@@ -226,6 +227,8 @@ export const koreapasJoin = async (userData: userDataType) => {
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
+      email: userData.email,
+      campus: userData.campus,
       hopeMajor1: hopeMajor1,
       hopeMajor2: hopeMajor2,
       curGPA: userData.curGPA,
@@ -255,6 +258,8 @@ export const koreapasJoin = async (userData: userDataType) => {
       firstMajor: firstMajor._id,
       nickname: userData.nickname,
       role: userData.role,
+      email: userData.email,
+      campus: userData.campus,
       secondMajor: secondMajor._id,
       passSemester: userData.passSemester,
       passGPA: userData.passGPA,
@@ -478,17 +483,17 @@ export const checkKoreapas = async (
   return data;
 };
 
-// uuid 확인으로 koreapas로 이미 등록된 쿠플라이 회원인지 확인 
+// uuid 확인으로 koreapas로 이미 등록된 쿠플라이 회원인지 확인
 export const checkKoreapasJoined = async (koreapasUUID: string) => {
   const user = await User.findOne({ koreapasUUID: koreapasUUID });
   const data = {
-    alreadyJoined: false, 
-    koreapasUUID: koreapasUUID
-  }
+    alreadyJoined: false,
+    koreapasUUID: koreapasUUID,
+  };
   if (user) {
     data.alreadyJoined = true;
-  } 
-  return data; 
+  }
+  return data;
 };
 
 export const logout = async (accessToken: string) => {
