@@ -260,7 +260,7 @@ export const koreapasJoin = async (userData: userDataType) => {
       role: userData.role,
       email: userData.email,
       campus: userData.campus,
-      secondMajor: secondMajor._id,
+      secondMajor: secondMajor, // secondMajor._id 에서 수정 어떻게 되는지 확인용
       passSemester: userData.passSemester,
       passGPA: userData.passGPA,
     });
