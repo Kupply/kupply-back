@@ -268,7 +268,7 @@ export const koreapasJoin = async (userData: userDataType) => {
     await Application.create({
       candidateId: newUser._id,
       pnp: 'PASS',
-      applyMajor1: secondMajor._id,
+      applyMajor1: secondMajor, // secondMajor._id 에서 수정 어떻게 되는지 확인용
       applySemester: userData.passSemester,
       applyGPA: userData.passGPA,
     });
