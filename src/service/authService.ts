@@ -240,6 +240,8 @@ export const koreapasJoin = async (userData: userDataType) => {
     await hopeMajor2.updateOne({ $inc: { interest: 1 } });
     await newUser.save();
   } else {
+    console.log('THIS IS FROM THE BACKEND. SecondMajor? ', userData.secondMajor);
+
     const secondMajor = await Major.findOne({
       name: userData.secondMajor,
     });
@@ -264,6 +266,7 @@ export const koreapasJoin = async (userData: userDataType) => {
       passSemester: userData.passSemester,
       passGPA: userData.passGPA,
     });
+    await newUser.save();
 
     await Application.create({
       candidateId: newUser._id,
@@ -272,7 +275,6 @@ export const koreapasJoin = async (userData: userDataType) => {
       applySemester: userData.passSemester,
       applyGPA: userData.passGPA,
     });
-    await newUser.save();
   }
 
   return;
