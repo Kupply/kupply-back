@@ -4,6 +4,7 @@ import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import ApplyMetaData from '../models/applicationMetaDataModel';
 import { getCurrentSemester, getPrevSemester } from '../utils/semester';
+import { majorTargetList } from '../utils/major';
 
 type applyDataType = {
   candidateId: Types.ObjectId;
@@ -29,497 +30,46 @@ type cardData = {
   name: string;
   applyNum: number;
   passNum: number;
+  recruitNum: number;
   avg: number;
   min: number;
 };
+
 export const getCardDatas = async () => {
   const result: cardData[] = [];
 
-  const businessM = (await Major.findOne({ name: '경영학과' })) as IMajor;
-  const business = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: businessM._id,
-  });
-  let busAvg = 0,
-    busMin = 4.5,
-    busPassNum = 0;
-  business.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      busAvg += item.applyGPA;
-      busMin = Math.min(busMin, item.applyGPA);
-      busPassNum++;
+  for (const major of majorTargetList) {
+    const majorData = await Major.findOne({ name: major.value1 });
+    if (!majorData) {
+      throw new Error(`Major ${major.value1} not found`);
     }
-  });
-  result.push({
-    name: '경영대학 경영학과',
-    applyNum: business.length,
-    passNum: busPassNum,
-    avg: busAvg,
-    min: busMin,
-    semester: prevSemester,
-  });
 
-  const computerM = (await Major.findOne({ name: '컴퓨터학과' })) as IMajor;
-  const computer = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: computerM._id,
-  });
-  let compAvg = 0,
-    compMin = 4.5,
-    compPassNum = 0;
-  computer.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      compAvg += item.applyGPA;
-      compMin = Math.min(compMin, item.applyGPA);
-      compPassNum++;
-    }
-  });
-  result.push({
-    name: '정보대학 컴퓨터학과',
-    applyNum: computer.length,
-    passNum: compPassNum,
-    avg: compAvg,
-    min: compMin,
-    semester: prevSemester,
-  });
+    const applyMetaData = await ApplyMetaData.findOne({
+      semester: prevSemester,
+      major: majorData._id,
+    });
 
-  const psychoM = (await Major.findOne({ name: '심리학부' })) as IMajor;
-  const psycho = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: psychoM._id,
-  });
-  let psychoAvg = 0,
-    psychoMin = 4.5,
-    psychoPassNum = 0;
-  psycho.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      psychoAvg += item.applyGPA;
-      psychoMin = Math.min(psychoMin, item.applyGPA);
-      psychoPassNum++;
+    if (!applyMetaData) {
+      throw new Error(`ApplyMetaData for ${major.value1} not found`);
     }
-  });
-  result.push({
-    name: '심리학부',
-    applyNum: psycho.length,
-    passNum: psychoPassNum,
-    avg: psychoAvg,
-    min: psychoMin,
-    semester: prevSemester,
-  });
 
-  const economyM = (await Major.findOne({ name: '경제학과' })) as IMajor;
-  const economy = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: economyM._id,
-  });
-  let economyAvg = 0,
-    economyMin = 4.5,
-    economyPassNum = 0;
-  economy.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      economyAvg += item.applyGPA;
-      economyMin = Math.min(economyMin, item.applyGPA);
-      economyPassNum++;
+    let majorFullName = '';
+    if (major.value2 === '') {
+      majorFullName = `${major.value1}`;
+    } else {
+      majorFullName = `${major.value2} ${major.value1}`;
     }
-  });
-  result.push({
-    name: '정경대학 경제학과',
-    applyNum: economy.length,
-    passNum: economyPassNum,
-    avg: economyAvg,
-    min: economyMin,
-    semester: prevSemester,
-  });
 
-  const statsM = (await Major.findOne({ name: '통계학과' })) as IMajor;
-  const stats = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: statsM._id,
-  });
-  let statsAvg = 0,
-    statsMin = 4.5,
-    statsPassNum = 0;
-  stats.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      statsAvg += item.applyGPA;
-      statsMin = Math.min(statsMin, item.applyGPA);
-      statsPassNum++;
-    }
-  });
-  result.push({
-    name: '정경대학 통계학과',
-    applyNum: stats.length,
-    passNum: statsPassNum,
-    avg: statsAvg,
-    min: statsMin,
-    semester: prevSemester,
-  });
-
-  const mediaM = (await Major.findOne({ name: '미디어학부' })) as IMajor;
-  const media = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: mediaM._id,
-  });
-  let mediaAvg = 0,
-    mediaMin = 4.5,
-    mediaPassNum = 0;
-  media.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      mediaAvg += item.applyGPA;
-      mediaMin = Math.min(mediaMin, item.applyGPA);
-      mediaPassNum++;
-    }
-  });
-  result.push({
-    name: '미디어학부',
-    applyNum: media.length,
-    passNum: mediaPassNum,
-    avg: mediaAvg,
-    min: mediaMin,
-    semester: prevSemester,
-  });
-
-  const sigjakyungM = (await Major.findOne({
-    name: '식품자원경제학과',
-  })) as IMajor;
-  const sigjakyung = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: sigjakyungM._id,
-  });
-  let sigjakyungAvg = 0,
-    sigjakyungMin = 4.5,
-    sigjakyungPassNum = 0;
-  sigjakyung.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      sigjakyungAvg += item.applyGPA;
-      sigjakyungMin = Math.min(sigjakyungMin, item.applyGPA);
-      sigjakyungPassNum++;
-    }
-  });
-  result.push({
-    name: '생명과학대학 식품자원경제학과',
-    applyNum: sigjakyung.length,
-    passNum: sigjakyungPassNum,
-    avg: sigjakyungAvg,
-    min: sigjakyungMin,
-    semester: prevSemester,
-  });
-
-  const mathematicsM = (await Major.findOne({ name: '수학과' })) as IMajor;
-  const mathematics = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: mathematicsM._id,
-  });
-  let mathematicsAvg = 0,
-    mathematicsMin = 4.5,
-    mathematicsPassNum = 0;
-  mathematics.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      mathematicsAvg += item.applyGPA;
-      mathematicsMin = Math.min(mathematicsMin, item.applyGPA);
-      mathematicsPassNum++;
-    }
-  });
-  result.push({
-    name: '이과대학 수학과',
-    applyNum: mathematics.length,
-    passNum: mathematicsPassNum,
-    avg: mathematicsAvg,
-    min: mathematicsMin,
-    semester: prevSemester,
-  });
-
-  const chemistryM = (await Major.findOne({ name: '화학과' })) as IMajor;
-  const chemistry = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: chemistryM._id,
-  });
-  let chemistryAvg = 0,
-    chemistryMin = 4.5,
-    chemistryPassNum = 0;
-  chemistry.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      chemistryAvg += item.applyGPA;
-      chemistryMin = Math.min(chemistryMin, item.applyGPA);
-      chemistryPassNum++;
-    }
-  });
-  result.push({
-    name: '이과대학 화학과',
-    applyNum: chemistry.length,
-    passNum: chemistryPassNum,
-    avg: chemistryAvg,
-    min: chemistryMin,
-    semester: prevSemester,
-  });
-
-  const bioengM = (await Major.findOne({ name: '생명공학부' })) as IMajor;
-  const bioeng = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: bioengM._id,
-  });
-  let bioengAvg = 0,
-    bioengMin = 4.5,
-    bioengPassNum = 0;
-  bioeng.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      bioengAvg += item.applyGPA;
-      bioengMin = Math.min(bioengMin, item.applyGPA);
-      bioengPassNum++;
-    }
-  });
-  result.push({
-    name: '생명과학대학 생명공학부',
-    applyNum: bioeng.length,
-    passNum: bioengPassNum,
-    avg: bioengAvg,
-    min: bioengMin,
-    semester: prevSemester,
-  });
-
-  const lifesciM = (await Major.findOne({ name: '생명과학부' })) as IMajor;
-  const lifesci = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: lifesciM._id,
-  });
-  let lifesciAvg = 0,
-    lifesciMin = 4.5,
-    lifesciPassNum = 0;
-  lifesci.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      lifesciAvg += item.applyGPA;
-      lifesciMin = Math.min(lifesciMin, item.applyGPA);
-      lifesciPassNum++;
-    }
-  });
-  result.push({
-    name: '생명과학대학 생명과학부',
-    applyNum: lifesci.length,
-    passNum: lifesciPassNum,
-    avg: lifesciAvg,
-    min: lifesciMin,
-    semester: prevSemester,
-  });
-
-  const politicalM = (await Major.findOne({ name: '정치외교학과' })) as IMajor;
-  const political = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: politicalM._id,
-  });
-  let politicalAvg = 0,
-    politicalMin = 4.5,
-    politicalPassNum = 0;
-  political.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      politicalAvg += item.applyGPA;
-      politicalMin = Math.min(politicalMin, item.applyGPA);
-      politicalPassNum++;
-    }
-  });
-  result.push({
-    name: '정경대학 정치외교학과',
-    applyNum: political.length,
-    passNum: politicalPassNum,
-    avg: politicalAvg,
-    min: politicalMin,
-    semester: prevSemester,
-  });
-
-  const pubadminM = (await Major.findOne({ name: '행정학과' })) as IMajor;
-  const pubadmin = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: pubadminM._id,
-  });
-  let pubadminAvg = 0,
-    pubadminMin = 4.5,
-    pubadminPassNum = 0;
-  pubadmin.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      pubadminAvg += item.applyGPA;
-      pubadminMin = Math.min(pubadminMin, item.applyGPA);
-      pubadminPassNum++;
-    }
-  });
-  result.push({
-    name: '정경대학 행정학과',
-    applyNum: pubadmin.length,
-    passNum: pubadminPassNum,
-    avg: pubadminAvg,
-    min: pubadminMin,
-    semester: prevSemester,
-  });
-
-  const materialsM = (await Major.findOne({ name: '신소재공학부' })) as IMajor;
-  const materials = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: materialsM._id,
-  });
-  let materialsAvg = 0,
-    materialsMin = 4.5,
-    materialsPassNum = 0;
-  materials.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      materialsAvg += item.applyGPA;
-      materialsMin = Math.min(materialsMin, item.applyGPA);
-      materialsPassNum++;
-    }
-  });
-  result.push({
-    name: '공과대학 신소재공학부',
-    applyNum: materials.length,
-    passNum: materialsPassNum,
-    avg: materialsAvg,
-    min: materialsMin,
-    semester: prevSemester,
-  });
-
-  const mechanicalM = (await Major.findOne({ name: '기계공학부' })) as IMajor;
-  const mechanical = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: mechanicalM._id,
-  });
-  let mechanicalAvg = 0,
-    mechanicalMin = 4.5,
-    mechanicalPassNum = 0;
-  mechanical.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      mechanicalAvg += item.applyGPA;
-      mechanicalMin = Math.min(mechanicalMin, item.applyGPA);
-      mechanicalPassNum++;
-    }
-  });
-  result.push({
-    name: '공과대학 기계공학부',
-    applyNum: mechanical.length,
-    passNum: mechanicalPassNum,
-    avg: mechanicalAvg,
-    min: mechanicalMin,
-    semester: prevSemester,
-  });
-
-  const industrialM = (await Major.findOne({
-    name: '산업경영공학부',
-  })) as IMajor;
-  const industrial = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: industrialM._id,
-  });
-  let industrialAvg = 0,
-    industrialMin = 4.5,
-    industrialPassNum = 0;
-  industrial.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      industrialAvg += item.applyGPA;
-      industrialMin = Math.min(industrialMin, item.applyGPA);
-      industrialPassNum++;
-    }
-  });
-  result.push({
-    name: '공과대학 산업경영공학부',
-    applyNum: industrial.length,
-    passNum: industrialPassNum,
-    avg: industrialAvg,
-    min: industrialMin,
-    semester: prevSemester,
-  });
-
-  const electricalM = (await Major.findOne({
-    name: '전기전자공학부',
-  })) as IMajor;
-  const electrical = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: electricalM._id,
-  });
-  let electricalAvg = 0,
-    electricalMin = 4.5,
-    electricalPassNum = 0;
-  electrical.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      electricalAvg += item.applyGPA;
-      electricalMin = Math.min(electricalMin, item.applyGPA);
-      electricalPassNum++;
-    }
-  });
-  result.push({
-    name: '공과대학 전기전자공학부',
-    applyNum: electrical.length,
-    passNum: electricalPassNum,
-    avg: electricalAvg,
-    min: electricalMin,
-    semester: prevSemester,
-  });
-
-  const chembioM = (await Major.findOne({ name: '화공생명공학과' })) as IMajor;
-  const chembio = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: chembioM._id,
-  });
-  let chembioAvg = 0,
-    chembioMin = 4.5,
-    chembioPassNum = 0;
-  chembio.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      chembioAvg += item.applyGPA;
-      chembioMin = Math.min(chembioMin, item.applyGPA);
-      chembioPassNum++;
-    }
-  });
-  result.push({
-    name: '공과대학 화공생명공학과',
-    applyNum: chembio.length,
-    passNum: chembioPassNum,
-    avg: chembioAvg,
-    min: chembioMin,
-    semester: prevSemester,
-  });
-
-  const datasciM = (await Major.findOne({ name: '데이터과학과' })) as IMajor;
-  const datasci = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: datasciM._id,
-  });
-  let datasciAvg = 0,
-    datasciMin = 4.5,
-    datasciPassNum = 0;
-  datasci.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      datasciAvg += item.applyGPA;
-      datasciMin = Math.min(datasciMin, item.applyGPA);
-      datasciPassNum++;
-    }
-  });
-  result.push({
-    name: '정보대학 데이터과학과',
-    applyNum: datasci.length,
-    passNum: datasciPassNum,
-    avg: datasciAvg,
-    min: datasciMin,
-    semester: prevSemester,
-  });
-
-  const smartsecM = (await Major.findOne({ name: '스마트보안학부' })) as IMajor;
-  const smartsec = await Application.find({
-    applySemester: prevSemester,
-    applyMajor1: smartsecM._id,
-  });
-  let smartsecAvg = 0,
-    smartsecMin = 4.5,
-    smartsecPassNum = 0;
-  smartsec.forEach((item) => {
-    if (item.pnp === 'PASS') {
-      smartsecAvg += item.applyGPA;
-      smartsecMin = Math.min(smartsecMin, item.applyGPA);
-      smartsecPassNum++;
-    }
-  });
-  result.push({
-    name: '스마트보안학부 스마트보안학부',
-    applyNum: smartsec.length,
-    passNum: smartsecPassNum,
-    avg: smartsecAvg,
-    min: smartsecMin,
-    semester: prevSemester,
-  });
+    result.push({
+      name: majorFullName,
+      applyNum: applyMetaData.appliedNumber!,
+      passNum: applyMetaData.passedNumber!,
+      recruitNum: applyMetaData.recruitNumber!,
+      avg: applyMetaData.passedGPAavg!,
+      min: applyMetaData.passedGPAmin!,
+      semester: prevSemester,
+    });
+  }
 
   return result;
 };
