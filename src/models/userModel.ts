@@ -4,7 +4,8 @@ import bcrypt from 'bcryptjs';
 export interface IUser extends Document {
   // 공통
   _id: Types.ObjectId;
-  password: string;
+  koreapasUUID: string;
+  password: string; // FIXME: To Be Deleted
   name: string;
   studentId: string;
   email: string;
@@ -16,6 +17,7 @@ export interface IUser extends Document {
   profilePic: string;
   profileName: string; // s3에 저장된 이름
   leave: boolean; // 탈퇴한 유저이면 true
+  campus: string; // 소속캠퍼스 (서울캠: A , 세종캠: S , 대학원생: G, 교류학생: C)
   checkPassword: (userPassword: string) => Promise<boolean>;
   // 합격자만
   secondMajor: Types.ObjectId;
@@ -34,11 +36,14 @@ export interface IUser extends Document {
 const userSchema = new Schema<IUser>(
   {
     // common info of user
+    koreapasUUID: {
+      type: String,
+      // required: [true, 'User must have a koreapas UUID.'], // 연동 전, 쿠플라이 회원이 비밀번호 바꾸려고 할 때 없을 수 있음.
+      unique: true,
+    },
     password: {
       type: String,
-      required: [true, 'User must have a password.'],
       minLength: 8,
-      maxLength: 20,
       select: false,
     },
     name: {
@@ -48,12 +53,9 @@ const userSchema = new Schema<IUser>(
     studentId: {
       type: String,
       required: [true, 'User must have a student ID.'],
-      unique: true,
     },
     email: {
       type: String,
-      required: [true, 'User must have an email address.'],
-      unique: true,
       trim: true,
       match: [
         /^[a-zA-Z0-9._%+-]+@korea\.ac\.kr$/,
@@ -106,6 +108,9 @@ const userSchema = new Schema<IUser>(
     leave: {
       type: Boolean,
       default: false,
+    },
+    campus: {
+      type: String,
     },
     // info of passer only
     secondMajor: {

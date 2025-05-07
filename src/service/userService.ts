@@ -1,8 +1,8 @@
 import { Types } from 'mongoose';
-import User from '../models/userModel';
-import Major, { IMajor } from '../models/majorModel';
-import Application from '../models/applicationModel';
+
 import Email from '../models/emailModel';
+import Major, { IMajor } from '../models/majorModel';
+import User from '../models/userModel';
 import * as s3 from '../utils/s3';
 
 export type updateDataType = {
@@ -14,6 +14,7 @@ export type updateDataType = {
   newHopeMajor1: string;
   newHopeMajor2: string;
   newCurGPA: number;
+  newEmail: string;
 };
 
 export const getAllUsers = async () => {
@@ -67,8 +68,8 @@ export const getMe = async (userId: Types.ObjectId) => {
   }
 
   if (user.role === 'candidate') {
-    const firstMajorName = ((await Major.findById(user.firstMajor)) as IMajor)
-      .name;
+    const firstMajor = (await Major.findById(user.firstMajor)) as IMajor;
+    const firstMajorName = firstMajor.name;
     const hopeMajorName1 = ((await Major.findById(user.hopeMajor1)) as IMajor)
       .name;
     const hopeMajorName2 = ((await Major.findById(user.hopeMajor2)) as IMajor)
@@ -80,6 +81,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
+      campus: user.campus,
       firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
@@ -101,6 +103,7 @@ export const getMe = async (userId: Types.ObjectId) => {
       profilePic: user.profilePic,
       profileLink: profileLink,
       role: user.role,
+      campus: user.campus,
       firstMajor: firstMajorName,
       studentId: user.studentId,
       email: user.email,
@@ -164,6 +167,10 @@ export const updateMe = async (
     user.nickname = updateData.newNickname;
   }
 
+  if (updateData.newEmail && updateData.newEmail !== user.email) {
+    user.email = updateData.newEmail;
+  }
+
   if (
     updateData.newHopeMajor1 &&
     user.role === 'candidate' &&
@@ -213,7 +220,6 @@ export const updateMe = async (
 
     if (major && major.interest !== undefined) {
       (major.interest as number)++;
-      console.log(major.name);
       await major.save();
     }
 
@@ -221,7 +227,6 @@ export const updateMe = async (
 
     if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
-      console.log(deleteMajor.name);
       await deleteMajor.save();
     }
   }
@@ -231,7 +236,6 @@ export const updateMe = async (
 
     if (major && major.interest !== undefined) {
       (major.interest as number)++;
-      console.log(major.name);
       await major.save();
     }
 
@@ -239,7 +243,6 @@ export const updateMe = async (
 
     if (deleteMajor && deleteMajor.interest !== undefined) {
       (deleteMajor.interest as number)--;
-      console.log(deleteMajor.name);
       await deleteMajor.save();
     }
   }

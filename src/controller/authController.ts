@@ -2,24 +2,24 @@ import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import * as authService from '../service/authService';
 
-export const join = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const userData = req.body;
-    // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
-    const newUser = await authService.join(userData);
+// export const join = async (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const userData = req.body;
+//     // FIXME: 지금은 테스트를 위해서 유저 정보를 리턴받는데 나중에는 안 받아도 됨.
+//     const newUser = await authService.join(userData);
 
-    res.status(201).json({
-      status: 'success',
-      data: {
-        message: `회원가입이 완료되었습니다.`,
-        user: newUser,
-      },
-    });
-  } catch (err) {
-    console.log(err);
-    next(err);
-  }
-};
+//     res.status(201).json({
+//       status: 'success',
+//       data: {
+//         message: `회원가입이 완료되었습니다.`,
+//         user: newUser,
+//       },
+//     });
+//   } catch (err) {
+//     console.log(err);
+//     next(err);
+//   }
+// };
 
 export const login = async (
   req: Request,
@@ -52,6 +52,146 @@ export const login = async (
         accessTokenExpire: accessTokenExpire.getTime(),
         refreshToken,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasJoin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const userData = req.body;
+    await authService.koreapasJoin(userData);
+
+    res.status(201).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasLogin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id: koreapasId, password: koreapasPassword } = req.body;
+
+    const data = await authService.koreapasLogin(koreapasId, koreapasPassword);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasVerify = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { uuid: koreapasUUID } = req.body;
+
+    const data = await authService.koreapasVerify(koreapasUUID);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const koreapasSync = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {
+      userId,
+      koreapasUUID,
+      koreapasNickname,
+      koreapasFirstMajorCode,
+      koreapasFirstMajorCampus,
+    } = req.body;
+
+    await authService.koreapasSync(
+      userId,
+      koreapasUUID,
+      koreapasNickname,
+      koreapasFirstMajorCode,
+      koreapasFirstMajorCampus,
+    );
+
+    res.status(200).json({
+      status: 'success',
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkKupply = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { email: email, password: password } = req.body;
+
+    const userId = await authService.checkKupply(email, password);
+
+    res.status(200).json({
+      status: 'success',
+      userId: userId,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkKoreapas = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const { id: koreapasId, password: koreapasPassword } = req.body;
+
+    const data = await authService.checkKoreapas(koreapasId, koreapasPassword);
+
+    res.status(200).json({
+      status: 'success',
+      data: data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const checkKoreapasJoined = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { koreapasUUID } = req.body;
+    const data = await authService.checkKoreapasJoined(koreapasUUID);
+    res.status(200).json({
+      status: 'success',
+      data: data,
     });
   } catch (err) {
     next(err);

@@ -1,20 +1,24 @@
 import { Types } from 'mongoose';
+
+import Email from '../models/emailModel';
 import User, { IUser } from '../models/userModel';
 import Major, { IMajor } from '../models/majorModel';
 import Application from '../models/applicationModel';
-import Email from '../models/emailModel';
+
 import * as jwt from '../utils/jwt';
+import * as koreapas from '../utils/koreapas';
 import { sendAuthEmail, sendTempPassword } from '../utils/email';
 
 type userDataType = {
-  password: string;
+  koreapasUUID: string;
+  password: string; // 고파스 연동 시에는 필요 없음
   name: string;
   studentId: string;
   email: string;
-  firstMajor: string;
+  firstMajorCode: string;
   nickname: string;
   role: string;
-  refreshToken: string;
+  campus: string;
   secondMajor: string;
   passSemester: string;
   passDescription: string;
@@ -25,119 +29,119 @@ type userDataType = {
   curGPA: number;
 };
 
-export const join = async (userData: userDataType) => {
-  // 인증된 email인지 확인
-  const email = await Email.findOne({ email: userData.email });
-  if (!email || !email.certificate) {
-    throw { status: 400, message: '이메일 인증을 먼저 완료해주세요.' };
-  }
+// export const join = async (userData: userDataType) => {
+//   // 인증된 email인지 확인
+//   const email = await Email.findOne({ email: userData.email });
+//   if (!email || !email.certificate) {
+//     throw { status: 400, message: '이메일 인증을 먼저 완료해주세요.' };
+//   }
 
-  const firstMajor = await Major.findOne({
-    name: userData.firstMajor,
-  });
+//   const firstMajor = await Major.findOne({
+//     name: userData.firstMajor,
+//   });
 
-  if (!firstMajor) {
-    throw {
-      status: 404,
-      message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
-    };
-  }
+//   if (!firstMajor) {
+//     throw {
+//       status: 404,
+//       message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
+//     };
+//   }
 
-  let newUser;
-  let secondMajorId;
+//   let newUser;
+//   let secondMajorId;
 
-  if (userData.role === 'candidate') {
-    // candidate
-    const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
-    const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+//   if (userData.role === 'candidate') {
+//     // candidate
+//     const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+//     const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
 
-    if (!hopeMajor1 || !hopeMajor2) {
-      throw {
-        status: 404,
-        message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
-      };
-    }
+//     if (!hopeMajor1 || !hopeMajor2) {
+//       throw {
+//         status: 404,
+//         message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+//       };
+//     }
 
-    newUser = new User({
-      password: userData.password,
-      name: userData.name,
-      studentId: userData.studentId,
-      email: userData.email,
-      firstMajor: firstMajor._id,
-      nickname: userData.nickname,
-      role: userData.role,
-      hopeMajor1: hopeMajor1,
-      hopeMajor2: hopeMajor2,
-      curGPA: userData.curGPA,
-      changeGPA: 0,
-      isApplied: false,
-    });
-  } else {
-    // passer
-    const secondMajor = await Major.findOne({
-      name: userData.secondMajor,
-    });
+//     newUser = new User({
+//       password: userData.password,
+//       name: userData.name,
+//       studentId: userData.studentId,
+//       email: userData.email,
+//       firstMajor: firstMajor._id,
+//       nickname: userData.nickname,
+//       role: userData.role,
+//       hopeMajor1: hopeMajor1,
+//       hopeMajor2: hopeMajor2,
+//       curGPA: userData.curGPA,
+//       changeGPA: 0,
+//       isApplied: false,
+//     });
+//   } else {
+//     // passer
+//     const secondMajor = await Major.findOne({
+//       name: userData.secondMajor,
+//     });
 
-    if (!secondMajor) {
-      throw {
-        status: 404,
-        message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
-      };
-    }
+//     if (!secondMajor) {
+//       throw {
+//         status: 404,
+//         message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+//       };
+//     }
 
-    secondMajorId = secondMajor._id;
-    newUser = new User({
-      password: userData.password,
-      name: userData.name,
-      studentId: userData.studentId,
-      email: userData.email,
-      firstMajor: firstMajor._id,
-      nickname: userData.nickname,
-      role: userData.role,
-      secondMajor: secondMajor._id,
-      passSemester: userData.passSemester,
-      passGPA: userData.passGPA,
-    });
-  }
-  await newUser.save();
+//     secondMajorId = secondMajor._id;
+//     newUser = new User({
+//       password: userData.password,
+//       name: userData.name,
+//       studentId: userData.studentId,
+//       email: userData.email,
+//       firstMajor: firstMajor._id,
+//       nickname: userData.nickname,
+//       role: userData.role,
+//       secondMajor: secondMajor._id,
+//       passSemester: userData.passSemester,
+//       passGPA: userData.passGPA,
+//     });
+//   }
+//   await newUser.save();
 
-  //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
-  if (userData.role === 'candidate') {
-    const updateMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
-    const updateMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+//   //등록한 희망 전공에 따라 major의 interest를 1 증가시킨다.
+//   if (userData.role === 'candidate') {
+//     const updateMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+//     const updateMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
 
-    if (updateMajor1 && updateMajor1.interest !== undefined) {
-      await Major.updateOne(
-        { name: userData.hopeMajor1 },
-        { interest: (updateMajor1.interest as number) + 1 },
-      );
-    }
-    if (updateMajor2 && updateMajor2.interest !== undefined)
-      await Major.updateOne(
-        { name: userData.hopeMajor2 },
-        { interest: (updateMajor2.interest as number) + 1 },
-      );
-  }
+//     if (updateMajor1 && updateMajor1.interest !== undefined) {
+//       await Major.updateOne(
+//         { name: userData.hopeMajor1 },
+//         { interest: (updateMajor1.interest as number) + 1 },
+//       );
+//     }
+//     if (updateMajor2 && updateMajor2.interest !== undefined)
+//       await Major.updateOne(
+//         { name: userData.hopeMajor2 },
+//         { interest: (updateMajor2.interest as number) + 1 },
+//       );
+//   }
 
-  // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
-  // email.certificate = true;
-  // await email.save();
+//   // // 회원가입 완료 시 저장된 email을 certify 처리한다. -> 방식 수정
+//   // email.certificate = true;
+//   // await email.save();
 
-  // 합격자면 그 정보 application에 바로 저장.
-  if (userData.role === 'passer') {
-    const passer = await User.findOne({ studentId: userData.studentId });
+//   // 합격자면 그 정보 application에 바로 저장.
+//   if (userData.role === 'passer') {
+//     const passer = await User.findOne({ studentId: userData.studentId });
 
-    await Application.create({
-      candidateId: passer!._id,
-      pnp: 'PASS',
-      applyMajor1: secondMajorId,
-      applySemester: userData.passSemester,
-      applyGPA: userData.passGPA,
-    });
-  }
+//     await Application.create({
+//       candidateId: passer!._id,
+//       pnp: 'PASS',
+//       applyMajor1: secondMajorId,
+//       applySemester: userData.passSemester,
+//       applyGPA: userData.passGPA,
+//     });
+//   }
 
-  return newUser;
-};
+//   return newUser;
+// };
 
 export const login = async (userData: IUser) => {
   const { email, password } = userData;
@@ -149,9 +153,9 @@ export const login = async (userData: IUser) => {
   const user = await User.findOne({ email }).select('+password');
 
   if (!user || (user && user.leave)) {
-    throw { status: 400, message: '존재하지 않는 이메일입니다.' };
+    throw { status: 401, message: '존재하지 않는 이메일입니다.' };
   } else if (!(await user.checkPassword(password))) {
-    throw { status: 400, message: '비밀번호가 일치하지 않습니다.' };
+    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
   }
 
   const accessToken = jwt.createToken(user);
@@ -178,6 +182,320 @@ export const login = async (userData: IUser) => {
     accessTokenExpire,
     refreshTokenExpire,
   };
+};
+
+export const koreapasJoin = async (userData: userDataType) => {
+  // 있어야하는 정보
+  // 공통정보: koreapasUUID, name, studentId, firstMajorCode, nickname, role, email, campus
+  // 지원자: hopeMajor1, hopeMajor2, curGPA
+  // 합격자: secondMajor, passSemester, passDescription, passGPA
+
+  const koreapasUUID = userData.koreapasUUID;
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (user) {
+    throw { status: 400, message: '이미 등록된 고파스 회원입니다.' };
+  }
+
+  const firstMajor = await Major.findOne({
+    code: userData.firstMajorCode,
+  });
+
+  if (!firstMajor) {
+    throw {
+      status: 404,
+      message: '본전공에 존재하지 않는 전공이 입력되었습니다.',
+    };
+  }
+
+  let newUser;
+  if (userData.role === 'candidate') {
+    const hopeMajor1 = await Major.findOne({ name: userData.hopeMajor1 });
+    const hopeMajor2 = await Major.findOne({ name: userData.hopeMajor2 });
+
+    if (!hopeMajor1 || !hopeMajor2) {
+      throw {
+        status: 404,
+        message: '지원자 희망 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
+
+    newUser = new User({
+      koreapasUUID: userData.koreapasUUID,
+      name: userData.name,
+      studentId: userData.studentId,
+      firstMajor: firstMajor._id,
+      nickname: userData.nickname,
+      role: userData.role,
+      email: userData.email,
+      campus: userData.campus,
+      hopeMajor1: hopeMajor1,
+      hopeMajor2: hopeMajor2,
+      curGPA: userData.curGPA,
+      changeGPA: 0,
+      isApplied: false,
+    });
+
+    await hopeMajor1.updateOne({ $inc: { interest: 1 } });
+    await hopeMajor2.updateOne({ $inc: { interest: 1 } });
+    await newUser.save();
+  } else {
+    console.log('THIS IS FROM THE BACKEND. SecondMajor? ', userData.secondMajor);
+
+    const secondMajor = await Major.findOne({
+      name: userData.secondMajor,
+    });
+
+    if (!secondMajor) {
+      throw {
+        status: 404,
+        message: '합격자 이중전공에 존재하지 않는 전공이 입력되었습니다.',
+      };
+    }
+
+    newUser = new User({
+      koreapasUUID: userData.koreapasUUID,
+      name: userData.name,
+      studentId: userData.studentId,
+      firstMajor: firstMajor._id,
+      nickname: userData.nickname,
+      role: userData.role,
+      email: userData.email,
+      campus: userData.campus,
+      secondMajor: secondMajor._id,
+      passSemester: userData.passSemester,
+      passGPA: userData.passGPA,
+    });
+    await newUser.save();
+
+    await Application.create({
+      candidateId: newUser._id,
+      pnp: 'PASS',
+      applyMajor1: secondMajor._id,
+      applySemester: userData.passSemester,
+      applyGPA: userData.passGPA,
+    });
+  }
+
+  return;
+};
+
+export const koreapasLogin = async (
+  koreapasId: string,
+  koreapasPassword: string,
+) => {
+  const response = await koreapas.koreapasLogin(koreapasId, koreapasPassword);
+
+  if (response.result === false) {
+    // 1. 고파스 로그인 실패
+    throw {
+      status: 401,
+      message: '유효하지 않은 고파스 아이디 혹은 비밀번호 입니다.',
+    };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2. 고파스 로그인에 성공했지만, 고파스 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const koreapasUUID = response.data.uuid;
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (!user) {
+    // 3. 쿠플라이에 등록되지 않은 고파스 회원일 때
+    // 연동 동의 및 추가 정보 입력 후 회원가입할 수 있게 관련 정보 같이 return
+    // 프론트에서 이 정보들 유지하다가 회원가입 시에 사용
+    const firstMajorName = (
+      (await Major.findOne({ code: response.data.dept })) as IMajor
+    ).name;
+
+    const data = {
+      isKupply: false,
+      koreapasData: {
+        koreapasUUID: koreapasUUID,
+        nickname: response.data.nickname,
+        studentId: response.data.hakbun,
+        firstMajorCode: response.data.dept,
+        firstMajorCampus: response.data.campus,
+        firstMajorName: firstMajorName,
+      },
+    };
+
+    return data;
+  } else {
+    // 4. 쿠플라이에 등록된 고파스 회원일 때
+    // 로그인 처리
+    const accessToken = jwt.createToken(user);
+    const refreshToken = jwt.createRefreshToken();
+
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken },
+      {
+        new: true,
+      },
+    );
+
+    // TODO: accessTokenExpire, refreshTokenExpire 설정 ?
+    // TODO: refreshToken은 보내지 않는다 ?
+    const data = {
+      isKupply: true,
+      accessToken,
+      refreshToken,
+    };
+
+    return data;
+  }
+};
+
+export const koreapasVerify = async (koreapasUUID: string) => {
+  const response = await koreapas.koreapasVerify(koreapasUUID);
+
+  if (response.result === false) {
+    // 1) koreapasUUID가 유효하지 않을 때
+    throw { status: 401, message: '유효하지 않은 uuid 입니다.' };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2) koreapasUUID가 유효하지만, 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+
+  if (!user) {
+    // 3) koreapasUUID가 유효하고, 유효한 레벨이지만, 쿠플라이에 등록되지 않은 회원일 때
+    const data = {
+      isKupply: false,
+      koreapasUUID: koreapasUUID,
+    };
+
+    return data;
+  } else {
+    // 4) koreapasUUID가 유효하고, 유효한 레벨이고, 쿠플라이에 등록된 회원일 때
+    // 로그인 처리
+    const accessToken = jwt.createToken(user);
+    const refreshToken = jwt.createRefreshToken();
+
+    await User.findByIdAndUpdate(
+      user._id,
+      { refreshToken },
+      {
+        new: true,
+      },
+    );
+
+    // TODO: accessTokenExpire, refreshTokenExpire 설정 ?
+    // TODO: refreshToken은 보내지 않는다 ?
+    const data = {
+      isKupply: true,
+      accessToken,
+      refreshToken,
+    };
+
+    return data;
+  }
+};
+
+export const koreapasSync = async (
+  userId: Types.ObjectId,
+  koreapasUUID: string,
+  koreapasNickname: string,
+  koreapasFirstMajorCode: string,
+  koreapasFirstMajorCampus: string,
+) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    throw { status: 404, message: '존재하지 않는 사용자입니다.' };
+  }
+
+  const firstMajor = await Major.findOne({
+    code: koreapasFirstMajorCode,
+  });
+
+  if (!firstMajor) {
+    // 고파스 전공 코드에 해당하는 전공이 없는 경우
+    throw {
+      status: 404,
+      message: '존재하지 않는 전공 코드입니다. 관리자에게 문의하세요.',
+    };
+  }
+
+  await user.updateOne(
+    {
+      koreapasUUID: koreapasUUID,
+      nickname: koreapasNickname,
+      firstMajor: firstMajor._id,
+      campus: koreapasFirstMajorCampus,
+    },
+    { runValidators: true },
+  );
+
+  return;
+};
+
+export const checkKupply = async (email: string, password: string) => {
+  if (!email || !password) {
+    throw { status: 400, message: '이메일 또는 비밀번호를 입력해주세요.' };
+  }
+
+  const user = await User.findOne({ email }).select('+password');
+
+  if (!user || (user && user.leave)) {
+    throw { status: 401, message: '존재하지 않는 이메일입니다.' };
+  } else if (!(await user.checkPassword(password))) {
+    throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
+  }
+
+  return user._id;
+};
+
+export const checkKoreapas = async (
+  koreapasId: string,
+  koreapasPassword: string,
+) => {
+  const response = await koreapas.koreapasLogin(koreapasId, koreapasPassword);
+
+  if (response.result === false) {
+    // 1. 고파스 로그인 실패
+    throw {
+      status: 401,
+      message: '유효하지 않은 고파스 아이디 혹은 비밀번호 입니다.',
+    };
+  } else if (
+    response.result === true &&
+    (response.data.level === '9' || response.data.level === '10')
+  ) {
+    // 2. 고파스 로그인에 성공했지만, 고파스 레벨이 9 또는 10일 때
+    throw { status: 403, message: '고파스 강등 또는 미인증 회원입니다.' };
+  }
+
+  const data = {
+    koreapasUUID: response.data.uuid,
+    nickname: response.data.nickname,
+    studentId: response.data.hakbun,
+    firstMajorCode: response.data.dept,
+    firstMajorCampus: response.data.campus,
+  };
+
+  return data;
+};
+
+// uuid 확인으로 koreapas로 이미 등록된 쿠플라이 회원인지 확인
+export const checkKoreapasJoined = async (koreapasUUID: string) => {
+  const user = await User.findOne({ koreapasUUID: koreapasUUID });
+  const data = {
+    alreadyJoined: false,
+    koreapasUUID: koreapasUUID,
+  };
+  if (user) {
+    data.alreadyJoined = true;
+  }
+  return data;
 };
 
 export const logout = async (accessToken: string) => {
