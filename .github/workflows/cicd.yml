@@ -52,27 +52,27 @@ jobs:
     steps:
       - name: setup .env
         run: |
-          echo "DBUrl=${{ secrets.DBURL }}" >> .env
-          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> .env
-          echo "BUCKET_REGION=${{ secrets.BUCKET_REGION }}" >> .env
-          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
-          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "JWT_CERTIFICATE_SECRET_KEY=${{ secrets.JWT_CERTIFICATE_SECRET_KEY }}" >> .env
-          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
-          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
-          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
-          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> .env
-          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> .env
-          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> .env
-          cat .env
+          echo "DBUrl=${{ secrets.DBURL }}" >> prod.env
+          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> prod.env
+          echo "BUCKET_REGION=${{ secrets.BUCKET_REGION }}" >> prod.env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> prod.env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> prod.env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> prod.env
+          echo "JWT_CERTIFICATE_SECRET_KEY=${{ secrets.JWT_CERTIFICATE_SECRET_KEY }}" >> prod.env
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> prod.env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> prod.env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> prod.env
+          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> prod.env
+          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> prod.env
+          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> prod.env
+          cat prod.env
       - name: Docker login to GHCR
         run: |
           echo ${{ secrets.GHCR_ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Run Docker
         run: |
           docker stop ${{env.DOCKER_CONTAINER}} && docker rm ${{env.DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:latest
-          docker run --env-file ./.env -d -p 8080:8080 --name ${{env.DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:latest
+          docker run --env-file ./prod.env -d -p 8080:8080 --name ${{env.DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:latest
 
   deploy-dev:
     if: github.ref == 'refs/heads/develop'
@@ -81,25 +81,25 @@ jobs:
     steps:
       - name: setup .env
         run: |
-          echo "DBUrl=${{ secrets.DBURL }}" >> .env
-          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> .env
-          echo "BUCKET_REGION=${{ secrets.BUCKET_REGION }}" >> .env
-          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> .env
-          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> .env
-          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
-          echo "JWT_CERTIFICATE_SECRET_KEY=${{ secrets.JWT_CERTIFICATE_SECRET_KEY }}" >> .env
-          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> .env
-          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> .env
-          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> .env
-          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> .env
-          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> .env
-          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> .env
-          echo "PORT=8081" >> .env
-          cat .env
+          echo "DBUrl=${{ secrets.DBURL }}" >> dev.env
+          echo "BUCKET_NAME=${{ secrets.BUCKET_NAME }}" >> dev.env
+          echo "BUCKET_REGION=${{ secrets.BUCKET_REGION }}" >> dev.env
+          echo "EMAIL_PASS=${{ secrets.EMAIL_PASS }}" >> dev.env
+          echo "EMAIL_USER=${{ secrets.EMAIL_USER }}" >> dev.env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> dev.env
+          echo "JWT_CERTIFICATE_SECRET_KEY=${{ secrets.JWT_CERTIFICATE_SECRET_KEY }}" >> dev.env
+          echo "JWT_REFRESH_SECRET_KEY=${{ secrets.JWT_REFRESH_SECRET_KEY }}" >> dev.env
+          echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}" >> dev.env
+          echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}" >> dev.env
+          echo "kOREAPAS_API_KEY=${{ secrets.KOREAPAS_API_KEY }}" >> dev.env
+          echo "KOREAPAS_LOGIN_URL=${{ secrets.KOREAPAS_LOGIN_URL }}" >> dev.env
+          echo "KOREAPAS_VERIFY_URL=${{ secrets.KOREAPAS_VERIFY_URL }}" >> dev.env
+          echo "PORT=8081" >> dev.env
+          cat dev.env
       - name: Docker login to GHCR
         run: |
           echo ${{ secrets.GHCR_ACCESS_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
       - name: Run Docker
         run: |
           docker stop ${{env.DEV_DOCKER_CONTAINER}} && docker rm ${{env.DEV_DOCKER_CONTAINER}} && docker rmi ${{env.DOCKER_IMAGE}}:dev
-          docker run --env-file ./.env -d --name ${{env.DEV_DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:dev
+          docker run --env-file ./dev.env -d -p 8081:8081 --name ${{env.DEV_DOCKER_CONTAINER}} --network host --restart always ${{env.DOCKER_IMAGE}}:dev
