@@ -46,6 +46,7 @@ const applicationSchema = new Schema(
     },
     applyGrade: {
       type: String,
+      //required: true,
       maxLength: 3,
       minLength: 3,
     },
