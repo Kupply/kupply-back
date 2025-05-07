@@ -38,13 +38,12 @@ const userSchema = new Schema<IUser>(
     // common info of user
     koreapasUUID: {
       type: String,
-      required: [true, 'User must have a koreapas UUID.'],
+      // required: [true, 'User must have a koreapas UUID.'], // 연동 전, 쿠플라이 회원이 비밀번호 바꾸려고 할 때 없을 수 있음.
       unique: true,
     },
     password: {
       type: String,
       minLength: 8,
-      maxLength: 20,
       select: false,
     },
     name: {
