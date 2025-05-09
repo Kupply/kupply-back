@@ -71,6 +71,7 @@ export const koreapasJoin = async (
       status: 'success',
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -90,6 +91,7 @@ export const koreapasLogin = async (
       data: data,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -109,6 +111,7 @@ export const koreapasVerify = async (
       data: data,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -139,6 +142,7 @@ export const koreapasSync = async (
       status: 'success',
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -158,6 +162,7 @@ export const checkKupply = async (
       userId: userId,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -177,6 +182,7 @@ export const checkKoreapas = async (
       data: data,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
@@ -184,7 +190,7 @@ export const checkKoreapas = async (
 export const checkKoreapasJoined = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const { koreapasUUID } = req.body;
@@ -194,6 +200,7 @@ export const checkKoreapasJoined = async (
       data: data,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
