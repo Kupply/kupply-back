@@ -390,6 +390,8 @@ function getValue2ByValue1(value1: string) {
 }
 
 export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
+  const startYearLastTwoDigits = +currentSemester.substring(2, 4) - 1;
+  const endYearLastTwoDigits = +currentSemester.substring(2, 4) - 4;
   const user = await User.findById(userId);
 
   if (!user) {
@@ -423,7 +425,11 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 
   // 반 파이 차트 데이터 초기화
   const initHalfChartMap1: Map<string, number> = new Map();
-  for (let stdIdYear = 23; stdIdYear >= 20; stdIdYear--) {
+  for (
+    let stdIdYear = startYearLastTwoDigits;
+    stdIdYear >= endYearLastTwoDigits;
+    stdIdYear--
+  ) {
     initHalfChartMap1.set(stdIdYear.toString(), 0);
   }
 
@@ -450,7 +456,11 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 
   // 반 파이 차트 데이터 초기화
   const initHalfChartMap2: Map<string, number> = new Map();
-  for (let stdIdYear = 23; stdIdYear >= 20; stdIdYear--) {
+  for (
+    let stdIdYear = startYearLastTwoDigits;
+    stdIdYear >= endYearLastTwoDigits;
+    stdIdYear--
+  ) {
     initHalfChartMap2.set(stdIdYear.toString(), 0);
   }
 
@@ -506,8 +516,8 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
       });
 
       let studentIdYear: string;
-      if (+user.studentId.substring(2, 4) <= 20) {
-        studentIdYear = '20';
+      if (+user.studentId.substring(2, 4) <= endYearLastTwoDigits) {
+        studentIdYear = endYearLastTwoDigits.toString();
       } else {
         studentIdYear = user.studentId.substring(2, 4);
       }
