@@ -240,8 +240,6 @@ export const koreapasJoin = async (userData: userDataType) => {
     await hopeMajor2.updateOne({ $inc: { interest: 1 } });
     await newUser.save();
   } else {
-    console.log('THIS IS FROM THE BACKEND. SecondMajor? ', userData.secondMajor);
-
     const secondMajor = await Major.findOne({
       name: userData.secondMajor,
     });
@@ -447,6 +445,11 @@ export const checkKupply = async (email: string, password: string) => {
 
   if (!user || (user && user.leave)) {
     throw { status: 401, message: '존재하지 않는 이메일입니다.' };
+  } else if (!user.password) {
+    throw {
+      status: 401,
+      message: '기존 쿠플라이 회원이 아닙니다. 고파스 아이디로 로그인해주세요.',
+    };
   } else if (!(await user.checkPassword(password))) {
     throw { status: 401, message: '비밀번호가 일치하지 않습니다.' };
   }
