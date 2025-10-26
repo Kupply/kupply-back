@@ -22,9 +22,6 @@ type landingPageInputType = {
   userId: Types.ObjectId | null;
 };
 
-const currentSemester: string = getCurrentSemester();
-const prevSemester: string = getPrevSemester();
-
 type cardData = {
   semester: string;
   name: string;
@@ -36,6 +33,7 @@ type cardData = {
 };
 
 export const getCardDatas = async () => {
+  const prevSemester: string = getPrevSemester();
   const result: cardData[] = [];
 
   for (const major of majorTargetList) {
@@ -79,6 +77,8 @@ export const createApplicationData = async (
   applyData: applyDataType,
 ) => {
   try {
+    const currentSemester: string = getCurrentSemester();
+
     //유효성 검사를 위해 지원 데이터가 존재하는 유저의 것인지, 중복되는지 확인한다.
     const user = await User.findById(candidateId);
     if (!user) {
@@ -143,6 +143,8 @@ export const createApplicationData = async (
 
 export const getApplicationData = async (userId: Types.ObjectId) => {
   try {
+    const currentSemester: string = getCurrentSemester();
+
     // user의 이번 학기 지원 데이터를 찾는다.
     const userApplyData = await Application.findOne({
       candidateId: userId,
@@ -240,6 +242,8 @@ export const getApplicationData = async (userId: Types.ObjectId) => {
 
 export const deleteApplicationData = async (userId: Types.ObjectId) => {
   try {
+    const currentSemester: string = getCurrentSemester();
+
     const user = await Application.findOneAndDelete({
       candidateId: userId,
       applySemester: currentSemester,
@@ -279,6 +283,8 @@ export const updateApplicationData = async (
   applyData: applyDataType,
 ) => {
   try {
+    const currentSemester: string = getCurrentSemester();
+
     const { applySemester } = applyData; //applyData를 받아 온다.
 
     if (applySemester && applySemester !== currentSemester) {
@@ -390,6 +396,7 @@ function getValue2ByValue1(value1: string) {
 }
 
 export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
+  const currentSemester: string = getCurrentSemester();
   const startYearLastTwoDigits = +currentSemester.substring(2, 4) - 1;
   const endYearLastTwoDigits = +currentSemester.substring(2, 4) - 4;
   const user = await User.findById(userId);
@@ -591,6 +598,9 @@ export const hopeMajorsCurrentInfo = async (userId: Types.ObjectId) => {
 //landingPage의 표와 카드에 쓰이는 정보를 가져온다.
 export const getLandingPageData = async (userId: Types.ObjectId | null) => {
   try {
+    const currentSemester: string = getCurrentSemester();
+    const prevSemester: string = getPrevSemester();
+
     //이번 학기의 모든 metadata를 가져온다.
     let currentMetadata = await ApplyMetaData.find({
       semester: currentSemester,
@@ -679,6 +689,7 @@ export const getLandingPageData = async (userId: Types.ObjectId | null) => {
 };
 
 export const myStage = async (userId: Types.ObjectId) => {
+  const currentSemester: string = getCurrentSemester();
   const user = await User.findById(userId);
 
   if (!user) {
