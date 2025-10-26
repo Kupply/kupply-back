@@ -467,15 +467,23 @@ export const updateApplicationMetaData = async () => {
         applyMetaData.passedNumber = passedApplications.length;
         if (passedGPAavg) {
           applyMetaData.passedGPAavg = passedGPAavg;
+        } else {
+          applyMetaData.passedGPAavg = 0;
         }
         if (passedGPAmed) {
           applyMetaData.passedGPAmed = passedGPAmed;
+        } else {
+          applyMetaData.passedGPAmed = 0;
         }
         if (passedGPAmode) {
           applyMetaData.passedGPAmode = passedGPAmode;
+        } else {
+          applyMetaData.passedGPAmode = 0;
         }
         if (passedGPAmin) {
           applyMetaData.passedGPAmin = passedGPAmin;
+        } else {
+          applyMetaData.passedGPAmin = 0;
         }
         await applyMetaData.save();
       } else {
