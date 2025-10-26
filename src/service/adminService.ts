@@ -168,6 +168,186 @@ export const updateApplication = async () => {
   };
 };
 
+export const updateApplicationV2 = async () => {
+  // 이메일 설문 기반 지원 현황 업데이트
+  // 로직은 updateApplication과 동일하나, 지원 결과 파일의 형식이 다름 (일단 합격자 명단 -> 지원자 결과 명단으로 바뀜)
+
+  // const currentSemester = semester.getCurrentSemester(); // 이중 '지원'한 학기, 합격자 명단이 올라온 학기, 서비스 데이터에 저장되는 학기
+  const currentSemester = '2025-1';
+
+  let passCount = 0,
+    failCount = 0,
+    diffCount = 0,
+    totalCount = 0,
+    passButNotAppliedCount = 0;
+  let firstHopePasserCount = 0,
+    secondHopePasserCount = 0;
+
+  const results = await s3.getCSVFromS3({
+    Key: `passers/${currentSemester}.csv`,
+  });
+
+  console.log('Get results from s3 Success');
+
+  for (const result of results) {
+    totalCount += 1;
+    // 0. 입력 데이터 처리
+    // 이메일에 '@korea.ac.kr' 도메인을 추가해주기
+    const rawEmail = result['email'] ? result['email'].trim() : '';
+    const rawPnp = result['pnp'] ? result['pnp'].trim() : '';
+    const applyMajor = result['applyMajor'] ? result['applyMajor'].trim() : '';
+
+    const email = rawEmail.includes('@') ? rawEmail : rawEmail + '@korea.ac.kr';
+    const pnp = rawPnp === '합격' ? true : rawPnp === '불합격' ? false : null;
+
+    // console.log(email, pnp, applyMajor);
+
+    // 불합격자는 나중에 한 번에 처리
+    if (pnp === false) {
+      console.log('불합격자 이후에 한 번에 처리 예정\n', result);
+      continue;
+    }
+
+    if (pnp === null) {
+      console.log('합격/불합격 여부가 명확하지 않습니다.\n', result);
+      continue;
+    }
+
+    // 1. 일치하는 합격자 찾기
+    const users = await User.find({
+      email: email,
+    });
+
+    if (users.length === 0) {
+      console.log('일치하는 합격자가 없습니다.\n', result);
+      continue;
+    }
+
+    // start with the first user as a default
+    let user = users[0];
+
+    if (users.length > 1) {
+      // 고파스 연계 이후로 같은 이메일을 가지는 사용자가 여러 명일 수 있음
+      // => koreapasUUID가 있는 사용자를 우선적으로 선택
+      const koreapasUser = users.find((u: any) => !!u.koreapasUUID);
+      if (koreapasUser) {
+        user = koreapasUser;
+      } else {
+        // ambiguous: none has koreapasUUID. skip to avoid picking wrong account.
+        console.log(
+          '일치하는 사용자가 여러 명인데, koreapasUUID가 있는 사용자가 없어 처리를 건너뜁니다.\n',
+          result,
+          users.map((u) => ({ _id: u._id, studentId: u.studentId })),
+        );
+        continue;
+      }
+    }
+
+    // 2. 일치하는 학과 찾기
+    const secondMajor = await Major.findOne({ name: applyMajor });
+
+    if (!secondMajor) {
+      console.log('일치하는 학과가 없습니다.\n', result);
+      continue;
+    }
+
+    // 3. 일치하는 모의지원 데이터 찾기
+    const application = await Application.findOne({
+      candidateId: user._id,
+      applySemester: currentSemester,
+    });
+
+    if (!application) {
+      passButNotAppliedCount += 1;
+      console.log('이번 학기 지원 정보가 없습니다.\n', result);
+      continue;
+    }
+
+    if (
+      application.applyMajor1.toString() !== secondMajor._id.toString() &&
+      application.applyMajor2!.toString() !== secondMajor._id.toString()
+    ) {
+      const applyMajor1 = await Major.findById(application.applyMajor1);
+      const applyMajor2 = await Major.findById(application.applyMajor2);
+      console.log(
+        '이중전공 학과가 일치하지 않습니다.\n',
+        secondMajor,
+        applyMajor1,
+        applyMajor2,
+      );
+      diffCount += 1;
+      continue;
+    }
+
+    if (application.applyMajor1.toString() === secondMajor._id.toString()) {
+      firstHopePasserCount += 1;
+    }
+    if (application.applyMajor2!.toString() === secondMajor._id.toString()) {
+      secondHopePasserCount += 1;
+    }
+
+    // 4. 데이터 갱신
+    application.pnp = 'PASS';
+    passCount += 1;
+
+    // 4-1. 이중 희망자 관련 데이터 삭제
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $unset: {
+          hopeMajor1: 1,
+          hopeMajor2: 1,
+          curGPA: 1,
+          changeGPA: 1,
+          isApplied: 1,
+        },
+      },
+    );
+    // 4-2. 이중 합격자 관련 데이터 추가
+    user.role = 'passer';
+    user.secondMajor = secondMajor._id;
+    user.passSemester = application.applySemester; // 서비스 모의지원 학기 기준으로
+    user.passGPA = application.applyGPA;
+
+    await user.save();
+    await application.save();
+
+    console.log('Update Success\n', result, user);
+  }
+
+  // 불합격자 처리 - 합격자 처리 후 남은 모의지원자들은 불합격자로 처리
+  const users = await User.find({ isApplied: true });
+
+  for (const user of users) {
+    // 1. 사용자 모의 지원 정보 초기화
+    user.isApplied = false;
+    await user.save();
+
+    // 2. 모의 지원 정보 불합격으로 변경
+    const application = await Application.findOne({
+      candidateId: user._id,
+      applySemester: currentSemester,
+    });
+
+    if (application) {
+      application.pnp = 'FAIL';
+      await application.save();
+
+      failCount += 1;
+    }
+  }
+
+  return {
+    passCount,
+    failCount,
+    diffCount,
+    totalCount,
+    passButNotAppliedCount,
+    firstHopePasserCount,
+    secondHopePasserCount,
+  };
+};
+
 export const updateMajors = async () => {
   const allMajor = majorValue.majorAllList;
   const targetMajor = majorValue.majorTargetList;
@@ -314,43 +494,49 @@ export const updateApplicationMetaData = async () => {
       }
     }
 
-    // 마지막으로 이번 학기(2025-1) => 이후에는 자동화 파이프라인 만들어서
-    const semester = '2025-1';
-    const lastFiveSemesters = [
-      '2024-1',
-      '2023-1',
-      '2022-1',
-      '2021-1',
-      '2020-1',
-    ];
+    // 마지막으로 이번 학기(2025-2) => 이후에는 자동화 파이프라인 만들어서
+    const semester = '2025-2';
+    const lastFourSemesters = ['2024-2', '2023-2', '2022-2', '2021-2'];
 
-    const lastFiveRecruitNum = lastFiveSemesters.map((sem) => {
+    const lastFourRecruitNum = lastFourSemesters.map((sem) => {
       return recruitNumber[majorName][sem];
     });
 
-    lastFiveRecruitNum.filter((num) => num !== 0);
+    lastFourRecruitNum.filter((num) => num !== 0);
 
     let expectedRecruitNumber;
-    if (lastFiveRecruitNum.length >= 5) {
-      // 남은 데이터가 5개 이상일 때, 최대, 최소 제외하고 평균
+    if (lastFourRecruitNum.length >= 4) {
+      // 남은 데이터가 4개 이상일 때, 최대, 최소 제외하고 평균
       expectedRecruitNumber = Math.floor(
-        lastFiveRecruitNum
+        lastFourRecruitNum
           .sort((a, b) => a - b)
-          .slice(1, 4)
-          .reduce((a, b) => a + b) / 3,
+          .slice(1, 3)
+          .reduce((a, b) => a + b) / 2,
       );
     } else {
-      // 남은 데이터가 5개 미만일 때, 평균값.
+      // 남은 데이터가 4개 미만일 때, 평균값.
       expectedRecruitNumber = Math.floor(
-        lastFiveRecruitNum.reduce((a, b) => a + b) / lastFiveRecruitNum.length,
+        lastFourRecruitNum.reduce((a, b) => a + b) / lastFourRecruitNum.length,
       );
     }
 
-    await ApplyMetaData.create({
+    const applyMetaData = await ApplyMetaData.findOne({
       major: major!._id,
       semester: semester,
-      expectedRecruitNumber: expectedRecruitNumber,
-      appliedNumber: 0,
     });
+
+    if (applyMetaData) {
+      console.log(majorName, expectedRecruitNumber, 'found');
+      applyMetaData.expectedRecruitNumber = expectedRecruitNumber;
+      await applyMetaData.save();
+    } else {
+      console.log(majorName, 'not found');
+      await ApplyMetaData.create({
+        major: major!._id,
+        semester: semester,
+        expectedRecruitNumber: expectedRecruitNumber,
+        appliedNumber: 0,
+      });
+    }
   }
 };
