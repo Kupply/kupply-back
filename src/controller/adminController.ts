@@ -36,6 +36,41 @@ export const updateApplication = async (
   }
 };
 
+export const updateApplicationV2 = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const {
+      passCount,
+      failCount,
+      diffCount,
+      totalCount,
+      passButNotAppliedCount,
+      firstHopePasserCount,
+      secondHopePasserCount,
+    } = await adminService.updateApplicationV2();
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        message: `지원 정보 갱신 V2가 성공적으로 완료되었습니다.`,
+        passCount,
+        failCount,
+        diffCount,
+        totalCount,
+        passButNotAppliedCount,
+        firstHopePasserCount,
+        secondHopePasserCount,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    next(err);
+  }
+};
+
 export const updateMajors = async (
   req: Request,
   res: Response,
